@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -8,714 +7,153 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
-
-:root {
-–bg: #0a0a0f;
-–panel: #111118;
-–border: #1e1e2e;
-–accent: #00ff88;
-–accent2: #ff3366;
-–accent3: #4488ff;
-–text: #e0e0f0;
-–muted: #555570;
-–up: #00ff88;
-–down: #ff3366;
-}
-
-- { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body {
-background: var(–bg);
-color: var(–text);
-font-family: ‘Syne’, sans-serif;
-min-height: 100vh;
-overflow-x: hidden;
--webkit-text-size-adjust: 100%;
-}
-
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image:
-linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
-linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
-background-size: 40px 40px;
-pointer-events: none;
-z-index: 0;
-}
-
-.container {
-width: 100%;
-max-width: 900px;
-margin: 0 auto;
-padding: 16px;
-position: relative;
-z-index: 1;
-}
-
-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 12px 0 16px;
-border-bottom: 1px solid var(–border);
-margin-bottom: 16px;
-}
-
-.logo { font-size: clamp(16px, 4vw, 22px); font-weight: 800; letter-spacing: -0.5px; }
-.logo span { color: var(–accent); }
-.header-right { display: flex; align-items: center; gap: 10px; }
-.last-update { font-size: clamp(10px, 2.5vw, 12px); color: var(–muted); font-family: ‘Space Mono’, monospace; }
-.status-dot { width: 8px; height: 8px; background: var(–accent); border-radius: 50%; box-shadow: 0 0 8px var(–accent); animation: pulse 2s infinite; flex-shrink: 0; }
-
-@keyframes pulse {
-0%, 100% { opacity: 1; transform: scale(1); }
-50% { opacity: 0.5; transform: scale(0.8); }
-}
-
-.api-setup {
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 14px;
-padding: clamp(16px, 4vw, 28px);
-margin-bottom: 16px;
-}
-
-.api-setup h3 { font-size: clamp(11px, 2.5vw, 13px); color: var(–accent); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
-.api-notice { font-size: clamp(11px, 2.5vw, 12px); color: var(–muted); margin-bottom: 14px; line-height: 1.7; font-family: ‘Space Mono’, monospace; }
-.api-notice strong { color: var(–accent2); }
-.input-group { display: flex; flex-direction: column; gap: 10px; }
-
-input {
-width: 100%;
-background: var(–bg);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 12px 14px;
-color: var(–text);
-font-family: ‘Space Mono’, monospace;
-font-size: clamp(12px, 2.5vw, 13px);
-outline: none;
-transition: border-color 0.2s;
--webkit-appearance: none;
-}
-
-input:focus { border-color: var(–accent); }
-input::placeholder { color: var(–muted); }
-
-.btn-primary {
-width: 100%;
-background: var(–accent);
-color: var(–bg);
-border: none;
-border-radius: 10px;
-padding: 14px;
-font-family: ‘Syne’, sans-serif;
-font-weight: 700;
-font-size: clamp(13px, 3vw, 15px);
-cursor: pointer;
-letter-spacing: 1px;
-transition: opacity 0.2s;
-margin-top: 4px;
-}
-
-.btn-primary:active { opacity: 0.8; }
-
-#dashboard { display: flex; flex-direction: column; gap: 12px; }
-
-.control-bar {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 10px;
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 10px 14px;
-}
-
-.refresh-label { font-size: clamp(10px, 2.5vw, 11px); color: var(–muted); font-family: ‘Space Mono’, monospace; }
-
-.btn-refresh {
-background: transparent;
-border: 1px solid var(–accent);
-color: var(–accent);
-border-radius: 6px;
-padding: 6px 16px;
-font-family: ‘Syne’, sans-serif;
-font-weight: 600;
-font-size: clamp(11px, 2.5vw, 12px);
-cursor: pointer;
-white-space: nowrap;
-}
-
-.tabs-row {
-display: flex;
-gap: 8px;
-overflow-x: auto;
--webkit-overflow-scrolling: touch;
-scrollbar-width: none;
-padding-bottom: 2px;
-}
-.tabs-row::-webkit-scrollbar { display: none; }
-
-.tab {
-flex-shrink: 0;
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 8px 16px;
-font-size: clamp(12px, 2.5vw, 13px);
-font-weight: 600;
-cursor: pointer;
-color: var(–muted);
-white-space: nowrap;
-font-family: ‘Syne’, sans-serif;
-transition: all 0.2s;
-}
-.tab.active { background: rgba(0,255,136,0.12); border-color: var(–accent); color: var(–accent); }
-
-.tf-tabs { display: flex; gap: 8px; }
-.tf-tab { flex: 1; text-align: center; font-family: ‘Space Mono’, monospace; font-size: clamp(11px, 2.5vw, 12px); padding: 8px 4px; }
-
-.error-msg {
-background: rgba(255,51,102,0.1);
-border: 1px solid rgba(255,51,102,0.3);
-border-radius: 8px;
-padding: 14px;
-font-size: clamp(11px, 2.5vw, 12px);
-color: var(–accent2);
-font-family: ‘Space Mono’, monospace;
-line-height: 1.8;
-white-space: pre-wrap;
-word-break: break-word;
-}
-
-.price-card {
-background: var(–panel);
-border: 1px solid var(–border);
-border-radius: 14px;
-padding: clamp(16px, 4vw, 24px);
-position: relative;
-overflow: hidden;
-}
-.price-card::before { content: ‘’; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(–accent); transition: background 0.3s; }
-.price-card.down::before { background: var(–accent2); }
-.price-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.symbol-name { font-size: clamp(11px, 2.5vw, 12px); color: var(–muted); letter-spacing: 2px; font-family: ‘Space Mono’, monospace; }
-.price-change { font-size: clamp(12px, 2.5vw, 13px); font-weight: 700; font-family: ‘Space Mono’, monospace; padding: 3px 10px; border-radius: 4px; }
-.price-change.up { background: rgba(0,255,136,0.1); color: var(–up); }
-.price-change.down { background: rgba(255,51,102,0.1); color: var(–down); }
-.price-value { font-size: clamp(28px, 8vw, 48px); font-weight: 800; letter-spacing: -1px; line-height: 1; margin-bottom: 6px; }
-.price-sub { font-size: clamp(10px, 2.5vw, 11px); color: var(–muted); font-family: ‘Space Mono’, monospace; }
-
-.indicators-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (min-width: 600px) { .indicators-grid { grid-template-columns: repeat(4, 1fr); } }
-
-.indicator-card { background: var(–panel); border: 1px solid var(–border); border-radius: 10px; padding: clamp(12px, 3vw, 18px); }
-.indicator-label { font-size: clamp(9px, 2vw, 10px); color: var(–muted); letter-spacing: 2px; text-transform: uppercase; font-family: ‘Space Mono’, monospace; margin-bottom: 6px; }
-.indicator-value { font-size: clamp(18px, 5vw, 26px); font-weight: 800; font-family: ‘Space Mono’, monospace; line-height: 1.1; word-break: break-all; }
-.indicator-signal { font-size: clamp(9px, 2vw, 10px); margin-top: 5px; font-weight: 600; letter-spacing: 1px; }
-
-.signal-buy { color: var(–up); }
-.signal-sell { color: var(–down); }
-.signal-neutral { color: var(–accent3); }
-.signal-overbought { color: var(–accent2); }
-.signal-oversold { color: var(–accent); }
-
-.rsi-bar { width: 100%; height: 4px; background: var(–border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-.rsi-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
-
-.chart-card { background: var(–panel); border: 1px solid var(–border); border-radius: 14px; padding: clamp(14px, 3vw, 20px); }
-.card-title { font-size: clamp(10px, 2vw, 11px); color: var(–muted); letter-spacing: 2px; text-transform: uppercase; font-family: ‘Space Mono’, monospace; margin-bottom: 14px; }
-.chart-wrap { position: relative; height: 180px; }
-
-.levels-card { background: var(–panel); border: 1px solid var(–border); border-radius: 14px; padding: clamp(14px, 3vw, 20px); }
-.level-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(–border); }
-.level-row:last-child { border-bottom: none; }
-.level-label { font-size: clamp(11px, 2.5vw, 12px); color: var(–muted); font-family: ‘Space Mono’, monospace; }
-.level-price { font-size: clamp(13px, 3vw, 15px); font-weight: 700; font-family: ‘Space Mono’, monospace; }
-.level-long { color: var(–up); }
-.level-short { color: var(–down); }
-.level-resist { color: var(–accent3); }
-
-.ai-card { background: var(–panel); border: 1px solid var(–border); border-radius: 14px; padding: clamp(16px, 4vw, 24px); }
-.ai-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-.ai-badge { font-size: clamp(9px, 2vw, 10px); background: rgba(68,136,255,0.15); color: var(–accent3); border: 1px solid rgba(68,136,255,0.3); padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; font-family: ‘Space Mono’, monospace; }
-.ai-title { font-size: clamp(13px, 3vw, 15px); font-weight: 700; color: var(–accent3); }
-.ai-content { font-size: clamp(13px, 3vw, 14px); line-height: 1.9; color: var(–text); white-space: pre-wrap; }
-.ai-loading { display: flex; align-items: center; gap: 8px; color: var(–muted); font-size: clamp(12px, 2.5vw, 13px); font-family: ‘Space Mono’, monospace; }
-.loading-dots span { animation: blink 1.4s infinite; font-size: 20px; line-height: 1; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
-
-.hidden { display: none !important; }
-
-footer { text-align: center; padding: 24px 0 16px; font-size: clamp(10px, 2vw, 11px); color: var(–muted); font-family: ‘Space Mono’, monospace; line-height: 2; }
+  :root{--bg:#0a0a0f;--panel:#111118;--border:#1e1e2e;--accent:#00ff88;--accent2:#ff3366;--accent3:#4488ff;--text:#e0e0f0;--muted:#555570;--up:#00ff88;--down:#ff3366}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  .container{width:100%;max-width:900px;margin:0 auto;padding:16px;position:relative;z-index:1}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px}
+  .logo{font-size:clamp(16px,4vw,22px);font-weight:800;letter-spacing:-.5px}.logo span{color:var(--accent)}
+  .header-right{display:flex;align-items:center;gap:10px}
+  .last-update{font-size:clamp(10px,2.5vw,12px);color:var(--muted);font-family:'Space Mono',monospace}
+  .status-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite;flex-shrink:0}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+  .api-setup{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,28px);margin-bottom:16px}
+  .api-setup h3{font-size:clamp(11px,2.5vw,13px);color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+  .api-notice{font-size:clamp(11px,2.5vw,12px);color:var(--muted);margin-bottom:14px;line-height:1.7;font-family:'Space Mono',monospace}
+  .api-notice strong{color:var(--accent2)}
+  .input-group{display:flex;flex-direction:column;gap:10px}
+  input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:clamp(12px,2.5vw,13px);outline:none;transition:border-color .2s;-webkit-appearance:none}
+  input:focus{border-color:var(--accent)}input::placeholder{color:var(--muted)}
+  .btn-primary{width:100%;background:var(--accent);color:var(--bg);border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,3vw,15px);cursor:pointer;letter-spacing:1px;transition:opacity .2s;margin-top:4px}
+  .btn-primary:active{opacity:.8}
+  #dashboard{display:flex;flex-direction:column;gap:12px}
+  .control-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 14px}
+  .refresh-label{font-size:clamp(10px,2.5vw,11px);color:var(--muted);font-family:'Space Mono',monospace}
+  .btn-refresh{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:6px 16px;font-family:'Syne',sans-serif;font-weight:600;font-size:clamp(11px,2.5vw,12px);cursor:pointer;white-space:nowrap}
+  .tabs-row{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .tabs-row::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:clamp(12px,2.5vw,13px);font-weight:600;cursor:pointer;color:var(--muted);white-space:nowrap;font-family:'Syne',sans-serif;transition:all .2s}
+  .tab.active{background:rgba(0,255,136,.12);border-color:var(--accent);color:var(--accent)}
+  .tf-tabs{display:flex;gap:8px}
+  .tf-tab{flex:1;text-align:center;font-family:'Space Mono',monospace;font-size:clamp(11px,2.5vw,12px);padding:8px 4px}
+  .error-msg{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.3);border-radius:8px;padding:14px;font-size:clamp(11px,2.5vw,12px);color:var(--accent2);font-family:'Space Mono',monospace;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+  .price-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,24px);position:relative;overflow:hidden}
+  .price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transition:background .3s}
+  .price-card.down::before{background:var(--accent2)}
+  .price-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .symbol-name{font-size:clamp(11px,2.5vw,12px);color:var(--muted);letter-spacing:2px;font-family:'Space Mono',monospace}
+  .price-change{font-size:clamp(12px,2.5vw,13px);font-weight:700;font-family:'Space Mono',monospace;padding:3px 10px;border-radius:4px}
+  .price-change.up{background:rgba(0,255,136,.1);color:var(--up)}.price-change.down{background:rgba(255,51,102,.1);color:var(--down)}
+  .price-value{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px}
+  .price-sub{font-size:clamp(10px,2.5vw,11px);color:var(--muted);font-family:'Space Mono',monospace}
+  .indicators-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(min-width:600px){.indicators-grid{grid-template-columns:repeat(4,1fr)}}
+  .indicator-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:clamp(12px,3vw,18px)}
+  .indicator-label{font-size:clamp(9px,2vw,10px);color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:6px}
+  .indicator-value{font-size:clamp(18px,5vw,26px);font-weight:800;font-family:'Space Mono',monospace;line-height:1.1;word-break:break-all}
+  .indicator-signal{font-size:clamp(9px,2vw,10px);margin-top:5px;font-weight:600;letter-spacing:1px}
+  .signal-buy{color:var(--up)}.signal-sell{color:var(--down)}.signal-neutral{color:var(--accent3)}.signal-overbought{color:var(--accent2)}.signal-oversold{color:var(--accent)}
+  .rsi-bar{width:100%;height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+  .rsi-fill{height:100%;border-radius:2px;transition:width .5s ease}
+  .chart-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,3vw,20px)}
+  .card-title{font-size:clamp(10px,2vw,11px);color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:14px}
+  .chart-wrap{position:relative;height:180px}
+  .levels-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,3vw,20px)}
+  .level-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+  .level-row:last-child{border-bottom:none}
+  .level-label{font-size:clamp(11px,2.5vw,12px);color:var(--muted);font-family:'Space Mono',monospace}
+  .level-price{font-size:clamp(13px,3vw,15px);font-weight:700;font-family:'Space Mono',monospace}
+  .level-long{color:var(--up)}.level-short{color:var(--down)}.level-resist{color:var(--accent3)}
+  .ai-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,24px)}
+  .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+  .ai-badge{font-size:clamp(9px,2vw,10px);background:rgba(68,136,255,.15);color:var(--accent3);border:1px solid rgba(68,136,255,.3);padding:3px 8px;border-radius:4px;letter-spacing:1px;font-family:'Space Mono',monospace}
+  .ai-title{font-size:clamp(13px,3vw,15px);font-weight:700;color:var(--accent3)}
+  .ai-content{font-size:clamp(13px,3vw,14px);line-height:1.9;color:var(--text);white-space:pre-wrap}
+  .ai-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:clamp(12px,2.5vw,13px);font-family:'Space Mono',monospace}
+  .loading-dots span{animation:blink 1.4s infinite;font-size:20px;line-height:1}
+  .loading-dots span:nth-child(2){animation-delay:.2s}.loading-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+  .hidden{display:none!important}
+  footer{text-align:center;padding:24px 0 16px;font-size:clamp(10px,2vw,11px);color:var(--muted);font-family:'Space Mono',monospace;line-height:2}
 </style>
-
 </head>
 <body>
 <div class="container">
-
   <header>
     <div class="logo">CRYPTO<span>ANALYST</span></div>
-    <div class="header-right">
-      <span class="last-update" id="lastUpdate">--:--:--</span>
-      <div class="status-dot"></div>
-    </div>
+    <div class="header-right"><span class="last-update" id="lastUpdate">--:--:--</span><div class="status-dot"></div></div>
   </header>
-
   <div class="api-setup" id="apiSetup">
     <h3>⚙ 初始設定</h3>
-    <div class="api-notice">
-      📡 幣安行情：<strong>免費，不需要 API Key</strong><br>
-      🤖 AI 分析：需要 Anthropic API Key（選填）<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;→ console.anthropic.com/settings/keys<br><br>
-      ⚠ 不需要 AI 分析可直接留空啟動
-    </div>
+    <div class="api-notice">📡 幣安行情：<strong>免費，不需要 API Key</strong><br>🤖 AI 分析：需要 Anthropic API Key（選填）<br>&nbsp;&nbsp;&nbsp;&nbsp;→ console.anthropic.com/settings/keys<br><br>⚠ 不需要 AI 分析可直接留空啟動</div>
     <div class="input-group">
-      <input type="password" id="anthropicKey" placeholder="Anthropic API Key（選填）" autocomplete="off" />
-      <input type="text" id="customSymbol" placeholder="自訂幣種（選填，例如：BNBUSDT）" autocomplete="off" />
+      <input type="password" id="anthropicKey" placeholder="Anthropic API Key（選填）" autocomplete="off"/>
+      <input type="text" id="customSymbol" placeholder="自訂幣種（選填，例如：BNBUSDT）" autocomplete="off"/>
       <button class="btn-primary" onclick="startDashboard()">🚀 開始看盤</button>
     </div>
   </div>
-
   <div id="dashboard" class="hidden">
-
-```
-<div class="control-bar">
-  <span class="refresh-label">每 30 秒自動更新</span>
-  <button class="btn-refresh" onclick="fetchAllData()">↻ 立即刷新</button>
+    <div class="control-bar"><span class="refresh-label">每 30 秒自動更新</span><button class="btn-refresh" onclick="fetchAllData()">↻ 立即刷新</button></div>
+    <div class="tabs-row" id="symbolTabs"></div>
+    <div class="tf-tabs">
+      <button class="tab tf-tab active" onclick="switchTF(this,'15m')">15m</button>
+      <button class="tab tf-tab" onclick="switchTF(this,'1h')">1H</button>
+      <button class="tab tf-tab" onclick="switchTF(this,'4h')">4H</button>
+      <button class="tab tf-tab" onclick="switchTF(this,'1d')">1D</button>
+    </div>
+    <div id="errorMsg" class="error-msg hidden"></div>
+    <div class="price-card" id="priceCard">
+      <div class="price-header"><div class="symbol-name" id="symbolLabel">BTC/USDT</div><div class="price-change" id="priceChange">--</div></div>
+      <div class="price-value" id="priceValue">載入中...</div>
+      <div class="price-sub" id="priceSub">24H 高: -- | 低: --</div>
+    </div>
+    <div class="indicators-grid">
+      <div class="indicator-card"><div class="indicator-label">RSI (14)</div><div class="indicator-value" id="rsiValue">--</div><div class="indicator-signal" id="rsiSignal">--</div><div class="rsi-bar"><div class="rsi-fill" id="rsiFill"></div></div></div>
+      <div class="indicator-card"><div class="indicator-label">MACD</div><div class="indicator-value" id="macdValue">--</div><div class="indicator-signal" id="macdSignal">--</div></div>
+      <div class="indicator-card"><div class="indicator-label">MA20</div><div class="indicator-value" id="ma20Value">--</div><div class="indicator-signal" id="ma20Signal">--</div></div>
+      <div class="indicator-card"><div class="indicator-label">成交量</div><div class="indicator-value" id="volValue">--</div><div class="indicator-signal" id="volSignal">--</div></div>
+    </div>
+    <div class="chart-card"><div class="card-title">📈 價格走勢</div><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div>
+    <div class="levels-card">
+      <div class="card-title">🎯 關鍵點位</div>
+      <div class="level-row"><span class="level-label">壓力位 R2</span><span class="level-price level-resist" id="r2">--</span></div>
+      <div class="level-row"><span class="level-label">壓力位 R1</span><span class="level-price level-resist" id="r1">--</span></div>
+      <div class="level-row"><span class="level-label">📗 做多埋伏點</span><span class="level-price level-long" id="longEntry">--</span></div>
+      <div class="level-row"><span class="level-label">📕 做空埋伏點</span><span class="level-price level-short" id="shortEntry">--</span></div>
+      <div class="level-row"><span class="level-label">支撐位 S1</span><span class="level-price level-long" id="s1">--</span></div>
+      <div class="level-row"><span class="level-label">支撐位 S2</span><span class="level-price level-long" id="s2">--</span></div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-header"><div class="ai-badge">AI</div><div class="ai-title">Claude 市場分析</div></div>
+      <div id="aiContent"><div class="ai-loading">等待數據載入<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div></div>
+    </div>
+  </div>
+  <footer>⚠ 本工具僅供參考，不構成投資建議<br>交易有風險，請自行評估</footer>
 </div>
-
-<div class="tabs-row" id="symbolTabs"></div>
-
-<div class="tf-tabs">
-  <button class="tab tf-tab active" onclick="switchTF(this,'15m')">15m</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'1h')">1H</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'4h')">4H</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'1d')">1D</button>
-</div>
-
-<div id="errorMsg" class="error-msg hidden"></div>
-
-<div class="price-card" id="priceCard">
-  <div class="price-header">
-    <div class="symbol-name" id="symbolLabel">BTC/USDT</div>
-    <div class="price-change" id="priceChange">--</div>
-  </div>
-  <div class="price-value" id="priceValue">載入中...</div>
-  <div class="price-sub" id="priceSub">24H 高: -- | 低: --</div>
-</div>
-
-<div class="indicators-grid">
-  <div class="indicator-card">
-    <div class="indicator-label">RSI (14)</div>
-    <div class="indicator-value" id="rsiValue">--</div>
-    <div class="indicator-signal" id="rsiSignal">--</div>
-    <div class="rsi-bar"><div class="rsi-fill" id="rsiFill"></div></div>
-  </div>
-  <div class="indicator-card">
-    <div class="indicator-label">MACD</div>
-    <div class="indicator-value" id="macdValue">--</div>
-    <div class="indicator-signal" id="macdSignal">--</div>
-  </div>
-  <div class="indicator-card">
-    <div class="indicator-label">MA20</div>
-    <div class="indicator-value" id="ma20Value">--</div>
-    <div class="indicator-signal" id="ma20Signal">--</div>
-  </div>
-  <div class="indicator-card">
-    <div class="indicator-label">成交量</div>
-    <div class="indicator-value" id="volValue">--</div>
-    <div class="indicator-signal" id="volSignal">--</div>
-  </div>
-</div>
-
-<div class="chart-card">
-  <div class="card-title">📈 價格走勢</div>
-  <div class="chart-wrap">
-    <canvas id="priceChart"></canvas>
-  </div>
-</div>
-
-<div class="levels-card">
-  <div class="card-title">🎯 關鍵點位</div>
-  <div class="level-row">
-    <span class="level-label">壓力位 R2</span>
-    <span class="level-price level-resist" id="r2">--</span>
-  </div>
-  <div class="level-row">
-    <span class="level-label">壓力位 R1</span>
-    <span class="level-price level-resist" id="r1">--</span>
-  </div>
-  <div class="level-row">
-    <span class="level-label">📗 做多埋伏點</span>
-    <span class="level-price level-long" id="longEntry">--</span>
-  </div>
-  <div class="level-row">
-    <span class="level-label">📕 做空埋伏點</span>
-    <span class="level-price level-short" id="shortEntry">--</span>
-  </div>
-  <div class="level-row">
-    <span class="level-label">支撐位 S1</span>
-    <span class="level-price level-long" id="s1">--</span>
-  </div>
-  <div class="level-row">
-    <span class="level-label">支撐位 S2</span>
-    <span class="level-price level-long" id="s2">--</span>
-  </div>
-</div>
-
-<div class="ai-card">
-  <div class="ai-header">
-    <div class="ai-badge">AI</div>
-    <div class="ai-title">Claude 市場分析</div>
-  </div>
-  <div id="aiContent">
-    <div class="ai-loading">等待數據載入<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>
-  </div>
-</div>
-```
-
-  </div>
-
-  <footer>
-    ⚠ 本工具僅供參考，不構成投資建議<br>
-    交易有風險，請自行評估
-  </footer>
-
-</div>
-
 <script>
-const state = {
-  anthropicKey: '',
-  symbols: ['BTCUSDT','ETHUSDT','SOLUSDT'],
-  currentSymbol: 'BTCUSDT',
-  currentTF: '15m',
-  chart: null,
-};
-
-// ===== 不使用 AbortSignal.timeout，改用手動 setTimeout =====
-function fetchWithTimeout(url, ms) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('請求逾時')), ms);
-    fetch(url)
-      .then(res => { clearTimeout(timer); resolve(res); })
-      .catch(err => { clearTimeout(timer); reject(err); });
-  });
-}
-
-// 代理列表（不傳入 AbortSignal）
-const PROXY_FNS = [
-  u => u,
-  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-];
-
-async function fetchJSON(url) {
-  let lastErr;
-  for (const fn of PROXY_FNS) {
-    try {
-      const res = await fetchWithTimeout(fn(url), 8000);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return await res.json();
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw new Error(lastErr ? lastErr.message : '連線失敗');
-}
-
-function startDashboard() {
-  const key = document.getElementById('anthropicKey').value.trim();
-  const custom = document.getElementById('customSymbol').value.trim().toUpperCase().replace(/\s/g,'');
-  state.anthropicKey = key;
-
-  if (custom) {
-    if (!custom.endsWith('USDT')) { alert('格式請用 XXXUSDT，例如：BNBUSDT'); return; }
-    if (!state.symbols.includes(custom)) state.symbols.push(custom);
-  }
-
-  document.getElementById('apiSetup').classList.add('hidden');
-  document.getElementById('dashboard').classList.remove('hidden');
-  buildSymbolTabs();
-  fetchAllData();
-  setInterval(fetchAllData, 30000);
-}
-
-function buildSymbolTabs() {
-  const c = document.getElementById('symbolTabs');
-  c.innerHTML = '';
-  state.symbols.forEach((sym, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'tab' + (i === 0 ? ' active' : '');
-    btn.textContent = sym.replace('USDT', '/USDT');
-    btn.onclick = function() {
-      document.querySelectorAll('#symbolTabs .tab').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      state.currentSymbol = sym;
-      fetchAllData();
-    };
-    c.appendChild(btn);
-  });
-}
-
-function switchTF(el, tf) {
-  document.querySelectorAll('.tf-tab').forEach(function(b) { b.classList.remove('active'); });
-  el.classList.add('active');
-  state.currentTF = tf;
-  fetchAllData();
-}
-
-async function fetchAllData() {
-  showError('');
-  try {
-    const base = 'https://api.binance.com';
-    const tickerUrl = base + '/api/v3/ticker/24hr?symbol=' + state.currentSymbol;
-    const klinesUrl = base + '/api/v3/klines?symbol=' + state.currentSymbol + '&interval=' + state.currentTF + '&limit=100';
-
-    const ticker = await fetchJSON(tickerUrl);
-    const klines = await fetchJSON(klinesUrl);
-
-    updatePriceCard(ticker);
-    const ind = calcIndicators(klines);
-    updateIndicators(ind, ticker);
-    updateChart(klines);
-    updateLevels(klines, ticker);
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('zh-TW');
-
-    if (state.anthropicKey) {
-      runAIAnalysis(ticker, ind);
-    } else {
-      document.getElementById('aiContent').innerHTML =
-        '<div class="ai-loading" style="color:var(--muted)">未設定 API Key，AI 分析關閉</div>';
-    }
-  } catch(e) {
-    showError('⚠ 數據載入失敗：' + e.message + '\n\n請確認手機網路正常後重試。');
-  }
-}
-
-function updatePriceCard(t) {
-  const price = parseFloat(t.lastPrice);
-  const change = parseFloat(t.priceChangePercent);
-  const isUp = change >= 0;
-  document.getElementById('symbolLabel').textContent = state.currentSymbol.replace('USDT', '/USDT');
-  document.getElementById('priceValue').textContent = fmtPrice(price);
-  const el = document.getElementById('priceChange');
-  el.textContent = (isUp ? '+' : '') + change.toFixed(2) + '%';
-  el.className = 'price-change ' + (isUp ? 'up' : 'down');
-  document.getElementById('priceSub').textContent =
-    '24H 高: ' + fmtPrice(parseFloat(t.highPrice)) + ' | 低: ' + fmtPrice(parseFloat(t.lowPrice));
-  document.getElementById('priceCard').className = 'price-card ' + (isUp ? '' : 'down');
-}
-
-function fmtPrice(p) {
-  if (p >= 10000) return '$' + p.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
-  if (p >= 100) return '$' + p.toFixed(2);
-  if (p >= 1) return '$' + p.toFixed(3);
-  return '$' + p.toFixed(5);
-}
-
-function fmtVol(v) {
-  if (v >= 1e9) return (v/1e9).toFixed(1) + 'B';
-  if (v >= 1e6) return (v/1e6).toFixed(1) + 'M';
-  if (v >= 1e3) return (v/1e3).toFixed(1) + 'K';
-  return v.toFixed(0);
-}
-
-function calcIndicators(klines) {
-  const closes = klines.map(function(k) { return parseFloat(k[4]); });
-  const vols = klines.map(function(k) { return parseFloat(k[5]); });
-  const recent20 = vols.slice(-20);
-  const avgVol = recent20.reduce(function(a,b){return a+b;}, 0) / recent20.length;
-  return {
-    rsi: calcRSI(closes, 14),
-    macd: calcMACD(closes),
-    ma20: calcMA(closes, 20),
-    avgVol: avgVol,
-    lastVol: vols[vols.length - 1],
-    closes: closes
-  };
-}
-
-function calcRSI(closes, period) {
-  if (closes.length < period + 1) return 50;
-  var g = 0, l = 0;
-  for (var i = closes.length - period; i < closes.length; i++) {
-    var d = closes[i] - closes[i-1];
-    if (d > 0) g += d; else l -= d;
-  }
-  return 100 - 100 / (1 + g / (l || 0.0001));
-}
-
-function calcMACD(closes) {
-  function ema(arr, p) {
-    var k = 2/(p+1), e = arr[0];
-    for (var i = 1; i < arr.length; i++) e = arr[i]*k + e*(1-k);
-    return e;
-  }
-  var val = ema(closes, 12) - ema(closes, 26);
-  return { value: val, bullish: val > 0 };
-}
-
-function calcMA(closes, p) {
-  if (closes.length < p) return closes[closes.length-1];
-  var slice = closes.slice(-p);
-  return slice.reduce(function(a,b){return a+b;}, 0) / p;
-}
-
-function updateIndicators(ind, ticker) {
-  var price = parseFloat(ticker.lastPrice);
-  var rsi = ind.rsi;
-
-  document.getElementById('rsiValue').textContent = rsi.toFixed(1);
-  var fill = document.getElementById('rsiFill');
-  fill.style.width = rsi + '%';
-
-  if (rsi > 70) {
-    fill.style.background = 'var(--down)';
-    setSignal('rsiSignal', '⚠ 超買區間', 'signal-overbought');
-  } else if (rsi < 30) {
-    fill.style.background = 'var(--up)';
-    setSignal('rsiSignal', '✓ 超賣機會', 'signal-oversold');
-  } else if (rsi > 50) {
-    fill.style.background = 'var(--accent3)';
-    setSignal('rsiSignal', '↑ 偏強', 'signal-buy');
-  } else {
-    fill.style.background = 'var(--muted)';
-    setSignal('rsiSignal', '↓ 偏弱', 'signal-neutral');
-  }
-
-  var mv = ind.macd.value;
-  document.getElementById('macdValue').textContent = Math.abs(mv) > 100 ? mv.toFixed(0) : mv.toFixed(2);
-  setSignal('macdSignal', ind.macd.bullish ? '↑ 多頭排列' : '↓ 空頭排列', ind.macd.bullish ? 'signal-buy' : 'signal-sell');
-
-  document.getElementById('ma20Value').textContent = fmtPrice(ind.ma20).replace('$','');
-  setSignal('ma20Signal', price > ind.ma20 ? '↑ 均線上方' : '↓ 均線下方', price > ind.ma20 ? 'signal-buy' : 'signal-sell');
-
-  var vr = ind.lastVol / ind.avgVol;
-  document.getElementById('volValue').textContent = fmtVol(ind.lastVol);
-  setSignal('volSignal', vr > 1.5 ? '🔥 放量' : vr < 0.5 ? '😴 縮量' : '→ 正常', vr > 1.5 ? 'signal-buy' : 'signal-neutral');
-}
-
-function setSignal(id, text, cls) {
-  var el = document.getElementById(id);
-  el.textContent = text;
-  el.className = 'indicator-signal ' + cls;
-}
-
-function updateChart(klines) {
-  var data = klines.slice(-40);
-  var labels = data.map(function(k) {
-    var d = new Date(k[0]);
-    return ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
-  });
-  var prices = data.map(function(k) { return parseFloat(k[4]); });
-  var isUp = prices[prices.length-1] >= prices[0];
-  var color = isUp ? '#00ff88' : '#ff3366';
-
-  if (state.chart) { state.chart.destroy(); state.chart = null; }
-
-  var ctx = document.getElementById('priceChart').getContext('2d');
-  var grad = ctx.createLinearGradient(0, 0, 0, 180);
-  grad.addColorStop(0, isUp ? 'rgba(0,255,136,0.2)' : 'rgba(255,51,102,0.2)');
-  grad.addColorStop(1, 'transparent');
-
-  state.chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: prices,
-        borderColor: color,
-        backgroundColor: grad,
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#555570', font: { family: 'Space Mono', size: 9 }, maxTicksLimit: 6, maxRotation: 0 }, grid: { color: '#1e1e2e' } },
-        y: { ticks: { color: '#555570', font: { family: 'Space Mono', size: 9 }, maxTicksLimit: 5 }, grid: { color: '#1e1e2e' } }
-      }
-    }
-  });
-}
-
-function updateLevels(klines, ticker) {
-  var price = parseFloat(ticker.lastPrice);
-  var recent = klines.slice(-20);
-  var highs = recent.map(function(k) { return parseFloat(k[2]); });
-  var lows = recent.map(function(k) { return parseFloat(k[3]); });
-  var maxH = Math.max.apply(null, highs);
-  var minL = Math.min.apply(null, lows);
-  var range = maxH - minL;
-
-  document.getElementById('r2').textContent = fmtPrice(maxH);
-  document.getElementById('r1').textContent = fmtPrice(price + range * 0.382);
-  document.getElementById('longEntry').textContent = fmtPrice(minL + range * 0.1);
-  document.getElementById('shortEntry').textContent = fmtPrice(maxH - range * 0.1);
-  document.getElementById('s1').textContent = fmtPrice(price - range * 0.236);
-  document.getElementById('s2').textContent = fmtPrice(minL);
-}
-
-async function runAIAnalysis(ticker, ind) {
-  var el = document.getElementById('aiContent');
-  el.innerHTML = '<div class="ai-loading">Claude 分析中<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>';
-
-  var price = parseFloat(ticker.lastPrice);
-  var change = parseFloat(ticker.priceChangePercent);
-  var prompt = '你是專業加密貨幣技術分析師，請用繁體中文分析以下數據。\n\n' +
-    '幣種：' + state.currentSymbol + ' | 時間：' + state.currentTF + '\n' +
-    '價格：' + fmtPrice(price) + ' | 24H：' + change.toFixed(2) + '%\n' +
-    'RSI：' + ind.rsi.toFixed(1) + ' | MACD：' + (ind.macd.bullish ? '多頭' : '空頭') + '\n' +
-    'MA20：' + fmtPrice(ind.ma20) + '（' + (price > ind.ma20 ? '上方' : '下方') + '）\n' +
-    '量能：' + (ind.lastVol > ind.avgVol*1.5 ? '放量' : ind.lastVol < ind.avgVol*0.5 ? '縮量' : '正常') + '\n\n' +
-    '請提供：\n1. 📊 趨勢判斷（多/空/盤整）\n2. ⚡ 關鍵訊號（2-3點）\n3. 🎯 操作建議\n4. ⚠ 風險提示\n\n每項2-3句，簡潔直接。';
-
-  try {
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-client-side-key-disclosure': 'my-test-project'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    if (!res.ok) {
-      var errData = await res.json();
-      throw new Error(errData.error ? errData.error.message : '錯誤 ' + res.status);
-    }
-
-    var data = await res.json();
-    el.innerHTML = '<div class="ai-content">' + data.content[0].text + '</div>';
-  } catch(e) {
-    el.innerHTML = '<div class="ai-loading" style="color:var(--accent2)">⚠ AI 分析失敗：' + e.message + '</div>';
-  }
-}
-
-function showError(msg) {
-  var el = document.getElementById('errorMsg');
-  if (msg) { el.textContent = msg; el.classList.remove('hidden'); }
-  else { el.classList.add('hidden'); }
-}
+var WORKER_URL='https://dark-surf-b332.s0975698950.workers.dev';
+var BINANCE_PROXIES=[function(u){return u;},function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);},function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u);}];
+var state={anthropicKey:'',symbols:['BTCUSDT','ETHUSDT','SOLUSDT'],currentSymbol:'BTCUSDT',currentTF:'15m',chart:null};
+function fetchWithTimeout(url,ms){return new Promise(function(resolve,reject){var t=setTimeout(function(){reject(new Error('請求逾時'));},ms);fetch(url).then(function(r){clearTimeout(t);resolve(r);}).catch(function(e){clearTimeout(t);reject(e);});});}
+function fetchJSON(url){var last;var i=0;function next(){if(i>=BINANCE_PROXIES.length)return Promise.reject(last||new Error('連線失敗'));var fn=BINANCE_PROXIES[i++];return fetchWithTimeout(fn(url),8000).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).catch(function(e){last=e;return next();});}return next();}
+function startDashboard(){var key=document.getElementById('anthropicKey').value.trim();var custom=document.getElementById('customSymbol').value.trim().toUpperCase().replace(/\s/g,'');state.anthropicKey=key;if(custom){if(!custom.endsWith('USDT')){alert('格式請用 XXXUSDT');return;}if(state.symbols.indexOf(custom)<0)state.symbols.push(custom);}document.getElementById('apiSetup').classList.add('hidden');document.getElementById('dashboard').classList.remove('hidden');buildSymbolTabs();fetchAllData();setInterval(fetchAllData,30000);}
+function buildSymbolTabs(){var c=document.getElementById('symbolTabs');c.innerHTML='';state.symbols.forEach(function(sym,i){var btn=document.createElement('button');btn.className='tab'+(i===0?' active':'');btn.textContent=sym.replace('USDT','/USDT');btn.onclick=function(){document.querySelectorAll('#symbolTabs .tab').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');state.currentSymbol=sym;fetchAllData();};c.appendChild(btn);});}
+function switchTF(el,tf){document.querySelectorAll('.tf-tab').forEach(function(b){b.classList.remove('active');});el.classList.add('active');state.currentTF=tf;fetchAllData();}
+function fetchAllData(){showError('');var base='https://api.binance.com';Promise.all([fetchJSON(base+'/api/v3/ticker/24hr?symbol='+state.currentSymbol),fetchJSON(base+'/api/v3/klines?symbol='+state.currentSymbol+'&interval='+state.currentTF+'&limit=100')]).then(function(r){var ticker=r[0],klines=r[1];updatePriceCard(ticker);var ind=calcIndicators(klines);updateIndicators(ind,ticker);updateChart(klines);updateLevels(klines,ticker);document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('zh-TW');if(state.anthropicKey){runAIAnalysis(ticker,ind);}else{document.getElementById('aiContent').innerHTML='<div class="ai-loading" style="color:var(--muted)">未設定 API Key，AI 分析關閉</div>';}}).catch(function(e){showError('⚠ 數據載入失敗：'+e.message+'\n\n請確認手機網路正常後重試。');});}
+function updatePriceCard(t){var price=parseFloat(t.lastPrice),change=parseFloat(t.priceChangePercent),isUp=change>=0;document.getElementById('symbolLabel').textContent=state.currentSymbol.replace('USDT','/USDT');document.getElementById('priceValue').textContent=fmtPrice(price);var el=document.getElementById('priceChange');el.textContent=(isUp?'+':'')+change.toFixed(2)+'%';el.className='price-change '+(isUp?'up':'down');document.getElementById('priceSub').textContent='24H 高: '+fmtPrice(parseFloat(t.highPrice))+' | 低: '+fmtPrice(parseFloat(t.lowPrice));document.getElementById('priceCard').className='price-card '+(isUp?'':'down');}
+function fmtPrice(p){if(p>=10000)return '$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(p>=100)return '$'+p.toFixed(2);if(p>=1)return '$'+p.toFixed(3);return '$'+p.toFixed(5);}
+function fmtVol(v){if(v>=1e9)return (v/1e9).toFixed(1)+'B';if(v>=1e6)return (v/1e6).toFixed(1)+'M';if(v>=1e3)return (v/1e3).toFixed(1)+'K';return v.toFixed(0);}
+function calcIndicators(klines){var closes=klines.map(function(k){return parseFloat(k[4]);});var vols=klines.map(function(k){return parseFloat(k[5]);});var r20=vols.slice(-20);var avg=r20.reduce(function(a,b){return a+b;},0)/r20.length;return{rsi:calcRSI(closes,14),macd:calcMACD(closes),ma20:calcMA(closes,20),avgVol:avg,lastVol:vols[vols.length-1],closes:closes};}
+function calcRSI(c,p){if(c.length<p+1)return 50;var g=0,l=0;for(var i=c.length-p;i<c.length;i++){var d=c[i]-c[i-1];if(d>0)g+=d;else l-=d;}return 100-100/(1+g/(l||0.0001));}
+function calcMACD(c){function ema(a,p){var k=2/(p+1),e=a[0];for(var i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e;}var v=ema(c,12)-ema(c,26);return{value:v,bullish:v>0};}
+function calcMA(c,p){if(c.length<p)return c[c.length-1];return c.slice(-p).reduce(function(a,b){return a+b;},0)/p;}
+function updateIndicators(ind,ticker){var price=parseFloat(ticker.lastPrice),rsi=ind.rsi;document.getElementById('rsiValue').textContent=rsi.toFixed(1);var fill=document.getElementById('rsiFill');fill.style.width=rsi+'%';if(rsi>70){fill.style.background='var(--down)';setSignal('rsiSignal','⚠ 超買區間','signal-overbought');}else if(rsi<30){fill.style.background='var(--up)';setSignal('rsiSignal','✓ 超賣機會','signal-oversold');}else if(rsi>50){fill.style.background='var(--accent3)';setSignal('rsiSignal','↑ 偏強','signal-buy');}else{fill.style.background='var(--muted)';setSignal('rsiSignal','↓ 偏弱','signal-neutral');}var mv=ind.macd.value;document.getElementById('macdValue').textContent=Math.abs(mv)>100?mv.toFixed(0):mv.toFixed(2);setSignal('macdSignal',ind.macd.bullish?'↑ 多頭排列':'↓ 空頭排列',ind.macd.bullish?'signal-buy':'signal-sell');document.getElementById('ma20Value').textContent=fmtPrice(ind.ma20).replace('$','');setSignal('ma20Signal',price>ind.ma20?'↑ 均線上方':'↓ 均線下方',price>ind.ma20?'signal-buy':'signal-sell');var vr=ind.lastVol/ind.avgVol;document.getElementById('volValue').textContent=fmtVol(ind.lastVol);setSignal('volSignal',vr>1.5?'🔥 放量':vr<0.5?'😴 縮量':'→ 正常',vr>1.5?'signal-buy':'signal-neutral');}
+function setSignal(id,text,cls){var el=document.getElementById(id);el.textContent=text;el.className='indicator-signal '+cls;}
+function updateChart(klines){var data=klines.slice(-40);var labels=data.map(function(k){var d=new Date(k[0]);return('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);});var prices=data.map(function(k){return parseFloat(k[4]);});var isUp=prices[prices.length-1]>=prices[0];var color=isUp?'#00ff88':'#ff3366';if(state.chart){state.chart.destroy();state.chart=null;}var ctx=document.getElementById('priceChart').getContext('2d');var grad=ctx.createLinearGradient(0,0,0,180);grad.addColorStop(0,isUp?'rgba(0,255,136,0.2)':'rgba(255,51,102,0.2)');grad.addColorStop(1,'transparent');state.chart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{data:prices,borderColor:color,backgroundColor:grad,borderWidth:2,pointRadius:0,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555570',font:{family:'Space Mono',size:9},maxTicksLimit:6,maxRotation:0},grid:{color:'#1e1e2e'}},y:{ticks:{color:'#555570',font:{family:'Space Mono',size:9},maxTicksLimit:5},grid:{color:'#1e1e2e'}}}}});}
+function updateLevels(klines,ticker){var price=parseFloat(ticker.lastPrice);var recent=klines.slice(-20);var highs=recent.map(function(k){return parseFloat(k[2]);});var lows=recent.map(function(k){return parseFloat(k[3]);});var maxH=Math.max.apply(null,highs),minL=Math.min.apply(null,lows),range=maxH-minL;document.getElementById('r2').textContent=fmtPrice(maxH);document.getElementById('r1').textContent=fmtPrice(price+range*0.382);document.getElementById('longEntry').textContent=fmtPrice(minL+range*0.1);document.getElementById('shortEntry').textContent=fmtPrice(maxH-range*0.1);document.getElementById('s1').textContent=fmtPrice(price-range*0.236);document.getElementById('s2').textContent=fmtPrice(minL);}
+function runAIAnalysis(ticker,ind){var el=document.getElementById('aiContent');el.innerHTML='<div class="ai-loading">Claude 分析中<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>';var price=parseFloat(ticker.lastPrice),change=parseFloat(ticker.priceChangePercent);var prompt='你是專業加密貨幣技術分析師，請用繁體中文分析以下數據。\n\n幣種：'+state.currentSymbol+' | 時間：'+state.currentTF+'\n價格：'+fmtPrice(price)+' | 24H：'+change.toFixed(2)+'%\nRSI：'+ind.rsi.toFixed(1)+' | MACD：'+(ind.macd.bullish?'多頭':'空頭')+'\nMA20：'+fmtPrice(ind.ma20)+'（'+(price>ind.ma20?'上方':'下方')+'）\n量能：'+(ind.lastVol>ind.avgVol*1.5?'放量':ind.lastVol<ind.avgVol*0.5?'縮量':'正常')+'\n\n請提供：\n1. 📊 趨勢判斷（多/空/盤整）\n2. ⚡ 關鍵訊號（2-3點）\n3. 🎯 操作建議\n4. ⚠ 風險提示\n\n每項2-3句，簡潔直接。';fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':state.anthropicKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})}).then(function(r){if(!r.ok)return r.json().then(function(e){throw new Error(e.error?e.error.message:'錯誤 '+r.status);});return r.json();}).then(function(d){el.innerHTML='<div class="ai-content">'+d.content[0].text+'</div>';}).catch(function(e){el.innerHTML='<div class="ai-loading" style="color:var(--accent2)">⚠ AI 分析失敗：'+e.message+'</div>';});}
+function showError(msg){var el=document.getElementById('errorMsg');if(msg){el.textContent=msg;el.classList.remove('hidden');}else{el.classList.add('hidden');}}
 </script>
-
 </body>
 </html>
