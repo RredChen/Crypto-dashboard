@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Crypto Analyst Pro</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
   :root{--bg:#0a0a0f;--panel:#111118;--border:#1e1e2e;--accent:#00ff88;--accent2:#ff3366;--accent3:#4488ff;--text:#e0e0f0;--muted:#555570;--up:#00ff88;--down:#ff3366}
@@ -13,695 +12,594 @@
   html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-text-size-adjust:100%}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
   .container{width:100%;max-width:900px;margin:0 auto;padding:16px;position:relative;z-index:1}
-
-header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 16px;border-bottom:1px solid var(–border);margin-bottom:16px;position:relative}
-.logo{font-size:clamp(16px,4vw,22px);font-weight:800;letter-spacing:-.5px}.logo span{color:var(–accent)}
-.header-right{display:flex;align-items:center;gap:12px}
-.last-update{font-size:clamp(10px,2.5vw,12px);color:var(–muted);font-family:‘Space Mono’,monospace}
-.status-dot{width:8px;height:8px;background:var(–accent);border-radius:50%;box-shadow:0 0 8px var(–accent);animation:pulse 2s infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
-
-.menu-btn{background:transparent;border:1px solid var(–border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:border-color .2s;position:relative}
-.menu-btn:active{border-color:var(–accent)}
-.menu-btn svg{width:18px;height:18px;fill:var(–muted)}
-
-.dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(–panel);border:1px solid var(–border);border-radius:12px;padding:6px;min-width:180px;z-index:100;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
-.dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(–text);transition:background .2s}
-.dropdown-item:active{background:rgba(255,255,255,0.05)}
-.dropdown-item svg{width:16px;height:16px;flex-shrink:0}
-.dropdown-divider{height:1px;background:var(–border);margin:4px 0}
-
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center}
-.modal{background:var(–panel);border:1px solid var(–border);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.modal-title{font-size:16px;font-weight:800;color:var(–accent)}
-.modal-close{background:transparent;border:1px solid var(–border);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(–muted);font-size:18px;line-height:1}
-
-/* 模型選擇 */
-.model-tabs{display:flex;gap:8px;margin-bottom:20px}
-.model-tab{flex:1;text-align:center;padding:10px 4px;background:var(–bg);border:1px solid var(–border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(–muted);transition:all .2s;font-family:‘Syne’,sans-serif}
-.model-tab.active{border-color:var(–accent);color:var(–accent);background:rgba(0,255,136,0.08)}
-.model-tab .model-icon{font-size:18px;display:block;margin-bottom:4px}
-.model-tab .model-name{display:block;font-size:10px;letter-spacing:1px}
-
-/* 目前使用中標示 */
-.model-in-use{font-size:10px;background:rgba(0,255,136,0.15);color:var(–accent);border:1px solid rgba(0,255,136,0.3);padding:2px 8px;border-radius:4px;font-family:‘Space Mono’,monospace;margin-left:6px}
-
-.section-title{font-size:10px;color:var(–muted);letter-spacing:2px;text-transform:uppercase;font-family:‘Space Mono’,monospace;margin-bottom:10px}
-
-.api-status-card{background:var(–bg);border:1px solid var(–border);border-radius:10px;padding:14px;margin-bottom:16px}
-.api-status-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.api-status-value{font-size:12px;font-family:‘Space Mono’,monospace;color:var(–text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.api-connected{color:var(–accent)}.api-disconnected{color:var(–muted)}
-.status-badge{font-size:10px;padding:3px 8px;border-radius:4px;font-family:‘Space Mono’,monospace;font-weight:700;flex-shrink:0}
-.badge-on{background:rgba(0,255,136,0.15);color:var(–accent);border:1px solid rgba(0,255,136,0.3)}
-.badge-off{background:rgba(85,85,112,0.2);color:var(–muted);border:1px solid var(–border)}
-
-.modal input{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;padding:12px 14px;color:var(–text);font-family:‘Space Mono’,monospace;font-size:12px;outline:none;transition:border-color .2s;-webkit-appearance:none;margin-bottom:10px}
-.modal input:focus{border-color:var(–accent)}
-.modal input::placeholder{color:var(–muted)}
-
-.btn-save{width:100%;background:var(–accent);color:var(–bg);border:none;border-radius:10px;padding:13px;font-family:‘Syne’,sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px;margin-bottom:10px}
-.btn-save:active{opacity:.8}
-.btn-use{width:100%;background:rgba(68,136,255,0.15);color:var(–accent3);border:1px solid rgba(68,136,255,0.3);border-radius:10px;padding:13px;font-family:‘Syne’,sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px;margin-bottom:10px}
-.btn-use:active{opacity:.8}
-.btn-revoke{width:100%;background:transparent;border:1px solid var(–accent2);color:var(–accent2);border-radius:10px;padding:13px;font-family:‘Syne’,sans-serif;font-weight:700;font-size:14px;cursor:pointer;letter-spacing:1px}
-.btn-revoke:active{opacity:.8}
-
-.modal-tip{font-size:11px;color:var(–muted);font-family:‘Space Mono’,monospace;line-height:1.7;margin-top:14px;padding:12px;background:var(–bg);border-radius:8px;border:1px solid var(–border)}
-
-/* 當前使用模型顯示 */
-.current-model-bar{display:flex;align-items:center;gap:8px;background:var(–panel);border:1px solid var(–border);border-radius:8px;padding:8px 12px;margin-bottom:12px}
-.current-model-label{font-size:10px;color:var(–muted);font-family:‘Space Mono’,monospace}
-.current-model-name{font-size:12px;font-weight:700;color:var(–accent);font-family:‘Space Mono’,monospace}
-
-/* API Setup */
-.api-setup{background:var(–panel);border:1px solid var(–border);border-radius:14px;padding:clamp(16px,4vw,28px);margin-bottom:16px}
-.api-setup h3{font-size:clamp(11px,2.5vw,13px);color:var(–accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
-.api-notice{font-size:clamp(11px,2.5vw,12px);color:var(–muted);margin-bottom:14px;line-height:1.7;font-family:‘Space Mono’,monospace}
-.api-notice strong{color:var(–accent2)}
-.input-group{display:flex;flex-direction:column;gap:10px}
-.setup-input{width:100%;background:var(–bg);border:1px solid var(–border);border-radius:8px;padding:12px 14px;color:var(–text);font-family:‘Space Mono’,monospace;font-size:clamp(12px,2.5vw,13px);outline:none;transition:border-color .2s;-webkit-appearance:none}
-.setup-input:focus{border-color:var(–accent)}
-.setup-input::placeholder{color:var(–muted)}
-.btn-primary{width:100%;background:var(–accent);color:var(–bg);border:none;border-radius:10px;padding:14px;font-family:‘Syne’,sans-serif;font-weight:700;font-size:clamp(13px,3vw,15px);cursor:pointer;letter-spacing:1px;transition:opacity .2s;margin-top:4px}
-.btn-primary:active{opacity:.8}
-
-#dashboard{display:flex;flex-direction:column;gap:12px}
-.control-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(–panel);border:1px solid var(–border);border-radius:10px;padding:10px 14px}
-.refresh-label{font-size:clamp(10px,2.5vw,11px);color:var(–muted);font-family:‘Space Mono’,monospace}
-.btn-refresh{background:transparent;border:1px solid var(–accent);color:var(–accent);border-radius:6px;padding:6px 16px;font-family:‘Syne’,sans-serif;font-weight:600;font-size:clamp(11px,2.5vw,12px);cursor:pointer;white-space:nowrap}
-.tabs-row{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
-.tabs-row::-webkit-scrollbar{display:none}
-.tab{flex-shrink:0;background:var(–panel);border:1px solid var(–border);border-radius:8px;padding:8px 16px;font-size:clamp(12px,2.5vw,13px);font-weight:600;cursor:pointer;color:var(–muted);white-space:nowrap;font-family:‘Syne’,sans-serif;transition:all .2s}
-.tab.active{background:rgba(0,255,136,.12);border-color:var(–accent);color:var(–accent)}
-.tf-tabs{display:flex;gap:8px}
-.tf-tab{flex:1;text-align:center;font-family:‘Space Mono’,monospace;font-size:clamp(11px,2.5vw,12px);padding:8px 4px}
-.error-msg{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.3);border-radius:8px;padding:14px;font-size:clamp(11px,2.5vw,12px);color:var(–accent2);font-family:‘Space Mono’,monospace;line-height:1.8;white-space:pre-wrap;word-break:break-word}
-.price-card{background:var(–panel);border:1px solid var(–border);border-radius:14px;padding:clamp(16px,4vw,24px);position:relative;overflow:hidden}
-.price-card::before{content:’’;position:absolute;top:0;left:0;right:0;height:2px;background:var(–accent);transition:background .3s}
-.price-card.down::before{background:var(–accent2)}
-.price-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.symbol-name{font-size:clamp(11px,2.5vw,12px);color:var(–muted);letter-spacing:2px;font-family:‘Space Mono’,monospace}
-.price-change{font-size:clamp(12px,2.5vw,13px);font-weight:700;font-family:‘Space Mono’,monospace;padding:3px 10px;border-radius:4px}
-.price-change.up{background:rgba(0,255,136,.1);color:var(–up)}.price-change.down{background:rgba(255,51,102,.1);color:var(–down)}
-.price-value{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px}
-.price-sub{font-size:clamp(10px,2.5vw,11px);color:var(–muted);font-family:‘Space Mono’,monospace}
-.indicators-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(min-width:600px){.indicators-grid{grid-template-columns:repeat(4,1fr)}}
-.indicator-card{background:var(–panel);border:1px solid var(–border);border-radius:10px;padding:clamp(12px,3vw,18px)}
-.indicator-label{font-size:clamp(9px,2vw,10px);color:var(–muted);letter-spacing:2px;text-transform:uppercase;font-family:‘Space Mono’,monospace;margin-bottom:6px}
-.indicator-value{font-size:clamp(18px,5vw,26px);font-weight:800;font-family:‘Space Mono’,monospace;line-height:1.1;word-break:break-all}
-.indicator-signal{font-size:clamp(9px,2vw,10px);margin-top:5px;font-weight:600;letter-spacing:1px}
-.signal-buy{color:var(–up)}.signal-sell{color:var(–down)}.signal-neutral{color:var(–accent3)}.signal-overbought{color:var(–accent2)}.signal-oversold{color:var(–accent)}
-.rsi-bar{width:100%;height:4px;background:var(–border);border-radius:2px;margin-top:8px;overflow:hidden}
-.rsi-fill{height:100%;border-radius:2px;transition:width .5s ease}
-.chart-card{background:var(–panel);border:1px solid var(–border);border-radius:14px;padding:clamp(14px,3vw,20px)}
-.card-title{font-size:clamp(10px,2vw,11px);color:var(–muted);letter-spacing:2px;text-transform:uppercase;font-family:‘Space Mono’,monospace;margin-bottom:14px}
-.chart-wrap{position:relative;height:180px}
-.levels-card{background:var(–panel);border:1px solid var(–border);border-radius:14px;padding:clamp(14px,3vw,20px)}
-.level-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(–border)}
-.level-row:last-child{border-bottom:none}
-.level-label{font-size:clamp(11px,2.5vw,12px);color:var(–muted);font-family:‘Space Mono’,monospace}
-.level-price{font-size:clamp(13px,3vw,15px);font-weight:700;font-family:‘Space Mono’,monospace}
-.level-long{color:var(–up)}.level-short{color:var(–down)}.level-resist{color:var(–accent3)}
-.ai-card{background:var(–panel);border:1px solid var(–border);border-radius:14px;padding:clamp(16px,4vw,24px)}
-.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.ai-badge{font-size:clamp(9px,2vw,10px);background:rgba(68,136,255,.15);color:var(–accent3);border:1px solid rgba(68,136,255,.3);padding:3px 8px;border-radius:4px;letter-spacing:1px;font-family:‘Space Mono’,monospace}
-.ai-title{font-size:clamp(13px,3vw,15px);font-weight:700;color:var(–accent3)}
-.ai-model-tag{font-size:10px;color:var(–muted);font-family:‘Space Mono’,monospace;padding:2px 6px;border:1px solid var(–border);border-radius:4px}
-.ai-content{font-size:clamp(13px,3vw,14px);line-height:1.9;color:var(–text);white-space:pre-wrap}
-.ai-loading{display:flex;align-items:center;gap:8px;color:var(–muted);font-size:clamp(12px,2.5vw,13px);font-family:‘Space Mono’,monospace}
-.loading-dots span{animation:blink 1.4s infinite;font-size:20px;line-height:1}
-.loading-dots span:nth-child(2){animation-delay:.2s}.loading-dots span:nth-child(3){animation-delay:.4s}
-@keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
-.hidden{display:none!important}
-footer{text-align:center;padding:24px 0 16px;font-size:clamp(10px,2vw,11px);color:var(–muted);font-family:‘Space Mono’,monospace;line-height:2}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 0 16px;border-bottom:1px solid var(--border);margin-bottom:16px;position:relative}
+  .logo{font-size:clamp(16px,4vw,22px);font-weight:800;letter-spacing:-.5px}.logo span{color:var(--accent)}
+  .header-right{display:flex;align-items:center;gap:10px}
+  .live-badge{display:flex;align-items:center;gap:5px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:20px;padding:3px 10px}
+  .live-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 1.5s infinite}
+  .live-text{font-size:10px;color:var(--accent);font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px}
+  .last-update{font-size:clamp(10px,2vw,11px);color:var(--muted);font-family:'Space Mono',monospace}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  .menu-btn{background:var(--panel);border:1px solid var(--border);border-radius:10px;width:40px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;flex-shrink:0;padding:10px;position:relative}
+  .menu-btn:active{border-color:var(--accent)}
+  .menu-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+  .menu-btn.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .menu-btn.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+  .menu-btn.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .dropdown{position:absolute;top:calc(100% + 8px);right:0;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:8px;min-width:210px;z-index:100;box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+  .dropdown-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text)}
+  .dropdown-item:active{background:rgba(255,255,255,0.06)}
+  .di-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+  .di-label{flex:1}.di-sub{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;margin-top:2px}
+  .dropdown-divider{height:1px;background:var(--border);margin:4px 0}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .modal-title{font-size:16px;font-weight:800}
+  .modal-close{background:rgba(255,255,255,0.06);border:none;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);font-size:16px}
+  .search-wrap{position:relative;margin-bottom:12px}
+  .search-wrap input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px 12px 42px;color:var(--text);font-family:'Space Mono',monospace;font-size:13px;outline:none;-webkit-appearance:none}
+  .search-wrap input:focus{border-color:var(--accent)}
+  .search-wrap input::placeholder{color:var(--muted)}
+  .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;pointer-events:none}
+  .symbol-list{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+  .symbol-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer}
+  .symbol-item:active{border-color:var(--accent)}
+  .symbol-item.active{border-color:var(--accent);background:rgba(0,255,136,0.06)}
+  .sym-name{font-size:14px;font-weight:700}
+  .sym-full{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace}
+  .sym-price{font-size:13px;font-family:'Space Mono',monospace;font-weight:700;text-align:right}
+  .sym-chg{font-size:10px;font-family:'Space Mono',monospace;text-align:right}
+  .sym-loading{text-align:center;padding:30px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px}
+  .model-tabs{display:flex;gap:8px;margin-bottom:20px}
+  .model-tab{flex:1;text-align:center;padding:10px 4px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);font-family:'Syne',sans-serif}
+  .model-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(0,255,136,0.08)}
+  .model-tab .mi{font-size:18px;display:block;margin-bottom:4px}
+  .model-tab .mn{display:block;font-size:10px;letter-spacing:1px}
+  .sec-title{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:10px}
+  .api-sc{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px}
+  .api-sr{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .api-sv{font-size:12px;font-family:'Space Mono',monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .api-con{color:var(--accent)}.api-dis{color:var(--muted)}
+  .sbadge{font-size:10px;padding:3px 8px;border-radius:4px;font-family:'Space Mono',monospace;font-weight:700;flex-shrink:0}
+  .bon{background:rgba(0,255,136,0.15);color:var(--accent);border:1px solid rgba(0,255,136,0.3)}
+  .boff{background:rgba(85,85,112,0.2);color:var(--muted);border:1px solid var(--border)}
+  .modal input[type=password]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-family:'Space Mono',monospace;font-size:12px;outline:none;-webkit-appearance:none;margin-bottom:10px}
+  .modal input[type=password]:focus{border-color:var(--accent)}
+  .modal input[type=password]::placeholder{color:var(--muted)}
+  .bsave{width:100%;background:var(--accent);color:var(--bg);border:none;border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:10px}
+  .buse{width:100%;background:rgba(68,136,255,0.15);color:var(--accent3);border:1px solid rgba(68,136,255,0.3);border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:10px}
+  .brevoke{width:100%;background:transparent;border:1px solid var(--accent2);color:var(--accent2);border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer}
+  .mtip{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;line-height:1.7;margin-top:14px;padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+  .api-setup{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,28px);margin-bottom:16px}
+  .api-setup h3{font-size:clamp(11px,2.5vw,13px);color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+  .api-notice{font-size:clamp(11px,2.5vw,12px);color:var(--muted);margin-bottom:14px;line-height:1.7;font-family:'Space Mono',monospace}
+  .api-notice strong{color:var(--accent2)}
+  .btn-primary{width:100%;background:var(--accent);color:var(--bg);border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-weight:700;font-size:clamp(13px,3vw,15px);cursor:pointer;letter-spacing:1px}
+  #dashboard{display:flex;flex-direction:column;gap:12px}
+  .top-bar{display:flex;align-items:center;gap:8px}
+  .symbol-btn{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;flex:1;min-width:0}
+  .symbol-btn:active{border-color:var(--accent)}
+  .sbn{font-size:15px;font-weight:800;flex:1}
+  .sba{color:var(--muted);font-size:12px}
+  .tf-tabs{display:flex;gap:6px}
+  .tf-tab{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:clamp(11px,2.5vw,12px);font-weight:600;cursor:pointer;color:var(--muted);font-family:'Space Mono',monospace;white-space:nowrap}
+  .tf-tab.active{background:rgba(0,255,136,.12);border-color:var(--accent);color:var(--accent)}
+  .price-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,22px);position:relative;overflow:hidden}
+  .price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transition:background .3s}
+  .price-card.down::before{background:var(--accent2)}
+  .price-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+  .sym-label{font-size:clamp(11px,2.5vw,12px);color:var(--muted);letter-spacing:2px;font-family:'Space Mono',monospace}
+  .price-change{font-size:clamp(12px,2.5vw,13px);font-weight:700;font-family:'Space Mono',monospace;padding:3px 10px;border-radius:4px}
+  .price-change.up{background:rgba(0,255,136,.1);color:var(--up)}.price-change.down{background:rgba(255,51,102,.1);color:var(--down)}
+  .price-value{font-size:clamp(28px,8vw,48px);font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px;transition:color .2s}
+  .price-sub{font-size:clamp(10px,2.5vw,11px);color:var(--muted);font-family:'Space Mono',monospace}
+  .indicators-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(min-width:600px){.indicators-grid{grid-template-columns:repeat(4,1fr)}}
+  .indicator-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:clamp(12px,3vw,18px)}
+  .ilabel{font-size:clamp(9px,2vw,10px);color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:6px}
+  .ivalue{font-size:clamp(18px,5vw,26px);font-weight:800;font-family:'Space Mono',monospace;line-height:1.1;word-break:break-all}
+  .isignal{font-size:clamp(9px,2vw,10px);margin-top:5px;font-weight:600;letter-spacing:1px}
+  .sbuy{color:var(--up)}.ssell{color:var(--down)}.sneutral{color:var(--accent3)}.soverbought{color:var(--accent2)}.soversold{color:var(--accent)}
+  .rsi-bar{width:100%;height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
+  .rsi-fill{height:100%;border-radius:2px;transition:width .5s}
+  .chart-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,3vw,20px)}
+  .chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .card-title{font-size:clamp(10px,2vw,11px);color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:'Space Mono',monospace}
+  .style-tabs{display:flex;gap:6px}
+  .style-tab{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;color:var(--muted)}
+  .style-tab.active{border-color:var(--accent);color:var(--accent)}
+  #chartContainer{height:240px;border-radius:8px;overflow:hidden}
+  .levels-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(14px,3vw,20px)}
+  .level-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+  .level-row:last-child{border-bottom:none}
+  .llabel{font-size:clamp(11px,2.5vw,12px);color:var(--muted);font-family:'Space Mono',monospace}
+  .lprice{font-size:clamp(13px,3vw,15px);font-weight:700;font-family:'Space Mono',monospace}
+  .llong{color:var(--up)}.lshort{color:var(--down)}.lresist{color:var(--accent3)}
+  .ai-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:clamp(16px,4vw,24px)}
+  .ai-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .ai-badge{font-size:clamp(9px,2vw,10px);background:rgba(68,136,255,.15);color:var(--accent3);border:1px solid rgba(68,136,255,.3);padding:3px 8px;border-radius:4px;letter-spacing:1px;font-family:'Space Mono',monospace}
+  .ai-title{font-size:clamp(13px,3vw,15px);font-weight:700;color:var(--accent3)}
+  .ai-tag{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;padding:2px 6px;border:1px solid var(--border);border-radius:4px}
+  .ai-refresh{margin-left:auto;background:transparent;border:1px solid var(--accent3);color:var(--accent3);border-radius:6px;padding:5px 12px;font-size:11px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer}
+  .ai-content{font-size:clamp(13px,3vw,14px);line-height:1.9;color:var(--text);white-space:pre-wrap}
+  .ai-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:clamp(12px,2.5vw,13px);font-family:'Space Mono',monospace}
+  .ld span{animation:blink 1.4s infinite;font-size:20px;line-height:1}
+  .ld span:nth-child(2){animation-delay:.2s}.ld span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+  .error-msg{background:rgba(255,51,102,.1);border:1px solid rgba(255,51,102,.3);border-radius:8px;padding:14px;font-size:clamp(11px,2.5vw,12px);color:var(--accent2);font-family:'Space Mono',monospace;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+  .hidden{display:none!important}
+  footer{text-align:center;padding:24px 0 16px;font-size:clamp(10px,2vw,11px);color:var(--muted);font-family:'Space Mono',monospace;line-height:2}
 </style>
-
 </head>
 <body>
 <div class="container">
-
   <header>
     <div class="logo">CRYPTO<span>ANALYST</span></div>
     <div class="header-right">
+      <div class="live-badge" id="liveBadge" style="opacity:0.4">
+        <div class="live-dot"></div><span class="live-text">LIVE</span>
+      </div>
       <span class="last-update" id="lastUpdate">--:--:--</span>
-      <div class="status-dot"></div>
       <div style="position:relative">
         <button class="menu-btn" id="menuBtn" onclick="toggleMenu()">
-          <svg viewBox="0 0 20 20"><circle cx="10" cy="4" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="10" cy="16" r="1.5"/></svg>
+          <span></span><span></span><span></span>
         </button>
         <div class="dropdown hidden" id="dropdown">
+          <div class="dropdown-item" onclick="openSymbolModal()">
+            <div class="di-icon" style="background:rgba(0,255,136,0.1)">🔍</div>
+            <div><div class="di-label">選擇幣種</div><div class="di-sub">搜尋所有交易對</div></div>
+          </div>
           <div class="dropdown-item" onclick="openApiModal()">
-            <svg viewBox="0 0 20 20" fill="currentColor" style="color:var(--accent3)"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3a1 1 0 011 1v4a1 1 0 01-2 0V6a1 1 0 011-1zm0 9a1.25 1.25 0 110-2.5A1.25 1.25 0 0110 14z"/></svg>
-            AI 管理
+            <div class="di-icon" style="background:rgba(68,136,255,0.1)">🤖</div>
+            <div><div class="di-label">AI 模型管理</div><div class="di-sub" id="menuModelSub">未設定</div></div>
           </div>
           <div class="dropdown-divider"></div>
-          <div class="dropdown-item" onclick="fetchAllData();closeMenu()">
-            <svg viewBox="0 0 20 20" fill="currentColor" style="color:var(--accent)"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
-            立即刷新
+          <div class="dropdown-item" onclick="manualRefresh();closeMenu()">
+            <div class="di-icon" style="background:rgba(255,255,255,0.05)">↻</div>
+            <div><div class="di-label">手動刷新指標</div><div class="di-sub">重新計算 RSI/MACD</div></div>
           </div>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- AI 管理 Modal -->
+  <!-- 幣種搜尋 Modal -->
+  <div class="modal-overlay hidden" id="symOverlay" onclick="handleSymOverlay(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">🔍 選擇幣種</div>
+        <button class="modal-close" onclick="closeSymbolModal()">✕</button>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="symSearch" placeholder="搜尋幣種，例如：BTC、ETH、SOL..." oninput="filterSymbols()" autocomplete="off"/>
+      </div>
+      <div class="symbol-list" id="symList"><div class="sym-loading">載入交易對中...</div></div>
+    </div>
+  </div>
 
-  <div class="modal-overlay hidden" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <!-- AI 管理 Modal -->
+  <div class="modal-overlay hidden" id="apiOverlay" onclick="handleApiOverlay(event)">
     <div class="modal">
       <div class="modal-header">
         <div class="modal-title">🤖 AI 模型管理</div>
         <button class="modal-close" onclick="closeApiModal()">✕</button>
       </div>
-
-```
-  <!-- 模型選擇 Tab -->
-  <div class="model-tabs">
-    <div class="model-tab active" id="tab-claude" onclick="switchModelTab('claude')">
-      <span class="model-icon">🟠</span>
-      <span class="model-name">CLAUDE</span>
-    </div>
-    <div class="model-tab" id="tab-gemini" onclick="switchModelTab('gemini')">
-      <span class="model-icon">🔵</span>
-      <span class="model-name">GEMINI</span>
-    </div>
-    <div class="model-tab" id="tab-groq" onclick="switchModelTab('groq')">
-      <span class="model-icon">🟣</span>
-      <span class="model-name">GROQ</span>
-    </div>
-  </div>
-
-  <!-- Claude 面板 -->
-  <div id="panel-claude">
-    <div class="api-status-card">
-      <div class="section-title" style="margin-bottom:8px">Anthropic API Key 狀態</div>
-      <div class="api-status-row">
-        <div class="api-status-value" id="claudeStatusText">未設定</div>
-        <div class="status-badge badge-off" id="claudeStatusBadge">未連線</div>
+      <div class="model-tabs">
+        <div class="model-tab active" id="tab-claude" onclick="switchModelTab('claude')"><span class="mi">🟠</span><span class="mn">CLAUDE</span></div>
+        <div class="model-tab" id="tab-gemini" onclick="switchModelTab('gemini')"><span class="mi">🔵</span><span class="mn">GEMINI</span></div>
+        <div class="model-tab" id="tab-groq" onclick="switchModelTab('groq')"><span class="mi">🟣</span><span class="mn">GROQ</span></div>
+      </div>
+      <div id="panel-claude">
+        <div class="api-sc"><div class="sec-title" style="margin-bottom:8px">Anthropic API Key</div><div class="api-sr"><div class="api-sv api-dis" id="claudeStatusText">未設定</div><div class="sbadge boff" id="claudeStatusBadge">未連線</div></div></div>
+        <div class="sec-title">綁定 API Key</div>
+        <input type="password" id="claudeKeyInput" placeholder="sk-ant-api03-..." autocomplete="off"/>
+        <button class="bsave" onclick="saveKey('claude')">✓ 儲存</button>
+        <button class="buse" id="claudeUseBtn" onclick="setActiveModel('claude')">▶ 切換為此模型</button>
+        <button class="brevoke" id="claudeRevokeBtn" onclick="revokeKey('claude')">✕ 解除綁定</button>
+        <div class="mtip">申請：console.anthropic.com/settings/keys<br>⚠ 需另外儲值 API 額度</div>
+      </div>
+      <div id="panel-gemini" class="hidden">
+        <div class="api-sc"><div class="sec-title" style="margin-bottom:8px">Google Gemini API Key</div><div class="api-sr"><div class="api-sv api-dis" id="geminiStatusText">未設定</div><div class="sbadge boff" id="geminiStatusBadge">未連線</div></div></div>
+        <div class="sec-title">綁定 API Key</div>
+        <input type="password" id="geminiKeyInput" placeholder="AIza..." autocomplete="off"/>
+        <button class="bsave" onclick="saveKey('gemini')">✓ 儲存</button>
+        <button class="buse" id="geminiUseBtn" onclick="setActiveModel('gemini')">▶ 切換為此模型</button>
+        <button class="brevoke" id="geminiRevokeBtn" onclick="revokeKey('gemini')">✕ 解除綁定</button>
+        <div class="mtip">申請：aistudio.google.com/apikey<br>✅ 有免費額度</div>
+      </div>
+      <div id="panel-groq" class="hidden">
+        <div class="api-sc"><div class="sec-title" style="margin-bottom:8px">Groq API Key</div><div class="api-sr"><div class="api-sv api-dis" id="groqStatusText">未設定</div><div class="sbadge boff" id="groqStatusBadge">未連線</div></div></div>
+        <div class="sec-title">綁定 API Key</div>
+        <input type="password" id="groqKeyInput" placeholder="gsk_..." autocomplete="off"/>
+        <button class="bsave" onclick="saveKey('groq')">✓ 儲存</button>
+        <button class="buse" id="groqUseBtn" onclick="setActiveModel('groq')">▶ 切換為此模型</button>
+        <button class="brevoke" id="groqRevokeBtn" onclick="revokeKey('groq')">✕ 解除綁定</button>
+        <div class="mtip">申請：console.groq.com/keys<br>✅ 完全免費，速度快</div>
       </div>
     </div>
-    <div class="section-title">綁定 API Key</div>
-    <input type="password" id="claudeKeyInput" placeholder="sk-ant-api03-..." autocomplete="off"/>
-    <button class="btn-save" onclick="saveKey('claude')">✓ 儲存</button>
-    <button class="btn-use" id="claudeUseBtn" onclick="setActiveModel('claude')">▶ 切換為使用此模型</button>
-    <button class="btn-revoke" id="claudeRevokeBtn" onclick="revokeKey('claude')">✕ 解除綁定</button>
-    <div class="modal-tip">申請：console.anthropic.com/settings/keys<br>⚠ 需另外付費儲值 API 額度</div>
-  </div>
-
-  <!-- Gemini 面板 -->
-  <div id="panel-gemini" class="hidden">
-    <div class="api-status-card">
-      <div class="section-title" style="margin-bottom:8px">Google Gemini API Key 狀態</div>
-      <div class="api-status-row">
-        <div class="api-status-value" id="geminiStatusText">未設定</div>
-        <div class="status-badge badge-off" id="geminiStatusBadge">未連線</div>
-      </div>
-    </div>
-    <div class="section-title">綁定 API Key</div>
-    <input type="password" id="geminiKeyInput" placeholder="AIza..." autocomplete="off"/>
-    <button class="btn-save" onclick="saveKey('gemini')">✓ 儲存</button>
-    <button class="btn-use" id="geminiUseBtn" onclick="setActiveModel('gemini')">▶ 切換為使用此模型</button>
-    <button class="btn-revoke" id="geminiRevokeBtn" onclick="revokeKey('gemini')">✕ 解除綁定</button>
-    <div class="modal-tip">申請：aistudio.google.com/apikey<br>✅ 有免費額度，適合新手</div>
-  </div>
-
-  <!-- Groq 面板 -->
-  <div id="panel-groq" class="hidden">
-    <div class="api-status-card">
-      <div class="section-title" style="margin-bottom:8px">Groq API Key 狀態</div>
-      <div class="api-status-row">
-        <div class="api-status-value" id="groqStatusText">未設定</div>
-        <div class="status-badge badge-off" id="groqStatusBadge">未連線</div>
-      </div>
-    </div>
-    <div class="section-title">綁定 API Key</div>
-    <input type="password" id="groqKeyInput" placeholder="gsk_..." autocomplete="off"/>
-    <button class="btn-save" onclick="saveKey('groq')">✓ 儲存</button>
-    <button class="btn-use" id="groqUseBtn" onclick="setActiveModel('groq')">▶ 切換為使用此模型</button>
-    <button class="btn-revoke" id="groqRevokeBtn" onclick="revokeKey('groq')">✕ 解除綁定</button>
-    <div class="modal-tip">申請：console.groq.com/keys<br>✅ 完全免費，速度極快</div>
-  </div>
-
-</div>
-```
-
   </div>
 
   <!-- 首次設定 -->
-
   <div class="api-setup" id="apiSetup">
     <h3>⚙ 初始設定</h3>
-    <div class="api-notice">
-      📡 幣安行情：<strong>免費，不需要 API Key</strong><br>
-      🤖 AI 分析：支援 Claude / Gemini / Groq（選填）<br><br>
-      ⚠ 設定後自動記住，下次不需重新輸入
-    </div>
-    <div class="input-group">
-      <input class="setup-input" type="text" id="customSymbol" placeholder="自訂幣種（選填，例如：BNBUSDT）" autocomplete="off"/>
-      <button class="btn-primary" onclick="startDashboard()">🚀 開始看盤（AI 可稍後設定）</button>
-    </div>
+    <div class="api-notice">📡 幣安行情：<strong>免費，無需 API Key</strong><br>🤖 AI 分析：支援 Claude / Gemini / Groq（可稍後設定）<br><br>✅ 設定後自動記住，下次直接開啟</div>
+    <button class="btn-primary" onclick="startDashboard()">🚀 開始看盤</button>
   </div>
 
   <!-- 主介面 -->
-
   <div id="dashboard" class="hidden">
-    <div class="control-bar">
-      <span class="refresh-label">每 30 秒自動更新</span>
-      <button class="btn-refresh" onclick="fetchAllData()">↻ 立即刷新</button>
+    <div class="top-bar">
+      <div class="symbol-btn" onclick="openSymbolModal()">
+        <span class="sbn" id="symBtnName">BTC/USDT</span>
+        <span class="sba">▼</span>
+      </div>
+      <div class="tf-tabs">
+        <button class="tf-tab active" onclick="switchTF(this,'1m')">1m</button>
+        <button class="tf-tab" onclick="switchTF(this,'15m')">15m</button>
+        <button class="tf-tab" onclick="switchTF(this,'1h')">1H</button>
+        <button class="tf-tab" onclick="switchTF(this,'4h')">4H</button>
+        <button class="tf-tab" onclick="switchTF(this,'1d')">1D</button>
+      </div>
     </div>
-
-```
-<!-- 當前 AI 模型顯示 -->
-<div class="current-model-bar">
-  <span class="current-model-label">AI 模型：</span>
-  <span class="current-model-name" id="currentModelDisplay">未設定</span>
-</div>
-
-<div class="tabs-row" id="symbolTabs"></div>
-<div class="tf-tabs">
-  <button class="tab tf-tab active" onclick="switchTF(this,'15m')">15m</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'1h')">1H</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'4h')">4H</button>
-  <button class="tab tf-tab" onclick="switchTF(this,'1d')">1D</button>
-</div>
-<div id="errorMsg" class="error-msg hidden"></div>
-<div class="price-card" id="priceCard">
-  <div class="price-header">
-    <div class="symbol-name" id="symbolLabel">BTC/USDT</div>
-    <div class="price-change" id="priceChange">--</div>
-  </div>
-  <div class="price-value" id="priceValue">載入中...</div>
-  <div class="price-sub" id="priceSub">24H 高: -- | 低: --</div>
-</div>
-<div class="indicators-grid">
-  <div class="indicator-card"><div class="indicator-label">RSI (14)</div><div class="indicator-value" id="rsiValue">--</div><div class="indicator-signal" id="rsiSignal">--</div><div class="rsi-bar"><div class="rsi-fill" id="rsiFill"></div></div></div>
-  <div class="indicator-card"><div class="indicator-label">MACD</div><div class="indicator-value" id="macdValue">--</div><div class="indicator-signal" id="macdSignal">--</div></div>
-  <div class="indicator-card"><div class="indicator-label">MA20</div><div class="indicator-value" id="ma20Value">--</div><div class="indicator-signal" id="ma20Signal">--</div></div>
-  <div class="indicator-card"><div class="indicator-label">成交量</div><div class="indicator-value" id="volValue">--</div><div class="indicator-signal" id="volSignal">--</div></div>
-</div>
-<div class="chart-card"><div class="card-title">📈 價格走勢</div><div class="chart-wrap"><canvas id="priceChart"></canvas></div></div>
-<div class="levels-card">
-  <div class="card-title">🎯 關鍵點位</div>
-  <div class="level-row"><span class="level-label">壓力位 R2</span><span class="level-price level-resist" id="r2">--</span></div>
-  <div class="level-row"><span class="level-label">壓力位 R1</span><span class="level-price level-resist" id="r1">--</span></div>
-  <div class="level-row"><span class="level-label">📗 做多埋伏點</span><span class="level-price level-long" id="longEntry">--</span></div>
-  <div class="level-row"><span class="level-label">📕 做空埋伏點</span><span class="level-price level-short" id="shortEntry">--</span></div>
-  <div class="level-row"><span class="level-label">支撐位 S1</span><span class="level-price level-long" id="s1">--</span></div>
-  <div class="level-row"><span class="level-label">支撐位 S2</span><span class="level-price level-long" id="s2">--</span></div>
-</div>
-<div class="ai-card">
-  <div class="ai-header">
-    <div class="ai-badge">AI</div>
-    <div class="ai-title">市場分析</div>
-    <div class="ai-model-tag" id="aiModelTag">--</div>
-  </div>
-  <div id="aiContent"><div class="ai-loading">等待數據載入<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div></div>
-</div>
-```
-
+    <div id="errorMsg" class="error-msg hidden"></div>
+    <div class="price-card" id="priceCard">
+      <div class="price-header">
+        <div class="sym-label" id="symLabel">BTC/USDT</div>
+        <div class="price-change" id="priceChange">--</div>
+      </div>
+      <div class="price-value" id="priceValue">--</div>
+      <div class="price-sub" id="priceSub">24H 高: -- | 低: --</div>
+    </div>
+    <div class="indicators-grid">
+      <div class="indicator-card"><div class="ilabel">RSI (14)</div><div class="ivalue" id="rsiValue">--</div><div class="isignal" id="rsiSignal">--</div><div class="rsi-bar"><div class="rsi-fill" id="rsiFill"></div></div></div>
+      <div class="indicator-card"><div class="ilabel">MACD</div><div class="ivalue" id="macdValue">--</div><div class="isignal" id="macdSignal">--</div></div>
+      <div class="indicator-card"><div class="ilabel">MA20</div><div class="ivalue" id="ma20Value">--</div><div class="isignal" id="ma20Signal">--</div></div>
+      <div class="indicator-card"><div class="ilabel">成交量</div><div class="ivalue" id="volValue">--</div><div class="isignal" id="volSignal">--</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="card-title">K 線圖</div>
+        <div class="style-tabs">
+          <button class="style-tab active" onclick="switchStyle(this,'candle')">蠟燭</button>
+          <button class="style-tab" onclick="switchStyle(this,'line')">線條</button>
+          <button class="style-tab" onclick="switchStyle(this,'area')">面積</button>
+        </div>
+      </div>
+      <div id="chartContainer"></div>
+    </div>
+    <div class="levels-card">
+      <div class="card-title" style="margin-bottom:14px">🎯 關鍵點位</div>
+      <div class="level-row"><span class="llabel">壓力位 R2</span><span class="lprice lresist" id="r2">--</span></div>
+      <div class="level-row"><span class="llabel">壓力位 R1</span><span class="lprice lresist" id="r1">--</span></div>
+      <div class="level-row"><span class="llabel">📗 做多埋伏點</span><span class="lprice llong" id="longEntry">--</span></div>
+      <div class="level-row"><span class="llabel">📕 做空埋伏點</span><span class="lprice lshort" id="shortEntry">--</span></div>
+      <div class="level-row"><span class="llabel">支撐位 S1</span><span class="lprice llong" id="s1">--</span></div>
+      <div class="level-row"><span class="llabel">支撐位 S2</span><span class="lprice llong" id="s2">--</span></div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-header">
+        <div class="ai-badge">AI</div>
+        <div class="ai-title">市場分析</div>
+        <div class="ai-tag" id="aiTag">--</div>
+        <button class="ai-refresh" onclick="runAIAnalysis()">↻ 刷新分析</button>
+      </div>
+      <div id="aiContent"><div class="ai-loading">切換幣種或按「↻ 刷新分析」觸發 AI<div class="ld"><span>.</span><span>.</span><span>.</span></div></div></div>
+    </div>
   </div>
   <footer>⚠ 本工具僅供參考，不構成投資建議<br>交易有風險，請自行評估</footer>
 </div>
 
 <script>
-var WORKER_URL = 'https://dark-surf-b332.s0975698950.workers.dev';
-var BINANCE_PROXIES = [
-  function(u){return u;},
-  function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);},
-  function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u);}
-];
-
-// 模型設定
-var MODELS = {
-  claude: { name:'Claude (Anthropic)', tag:'claude-sonnet-4-20250514', storageKey:'crypto_claude_key' },
-  gemini: { name:'Gemini (Google)', tag:'gemini-2.0-flash', storageKey:'crypto_gemini_key' },
-  groq:   { name:'Groq (免費)', tag:'llama-3.3-70b-versatile', storageKey:'crypto_groq_key' }
+var WORKER='https://dark-surf-b332.s0975698950.workers.dev';
+var MODELS={
+  claude:{name:'Claude (Anthropic)',tag:'claude-sonnet-4-20250514',sk:'crypto_claude_key'},
+  gemini:{name:'Gemini (Google)',tag:'gemini-2.0-flash',sk:'crypto_gemini_key'},
+  groq:{name:'Groq (免費)',tag:'llama-3.3-70b-versatile',sk:'crypto_groq_key'}
+};
+var S={
+  sym:'BTCUSDT',tf:'1m',style:'candle',
+  model:'',keys:{claude:'',gemini:'',groq:''},
+  mtab:'claude',allSyms:[],filtSyms:[],
+  ws:null,chart:null,cSeries:null,lSeries:null,aSeries:null,kdata:[]
 };
 
-var state = {
-  symbols: ['BTCUSDT','ETHUSDT','SOLUSDT'],
-  currentSymbol: 'BTCUSDT',
-  currentTF: '15m',
-  chart: null,
-  activeModel: '',
-  keys: { claude:'', gemini:'', groq:'' },
-  currentModalTab: 'claude'
-};
-
-// ===== 初始化 =====
 function init(){
-  // 載入儲存的 keys
-  try {
-    state.keys.claude = localStorage.getItem(MODELS.claude.storageKey) || '';
-    state.keys.gemini = localStorage.getItem(MODELS.gemini.storageKey) || '';
-    state.keys.groq   = localStorage.getItem(MODELS.groq.storageKey)   || '';
-    state.activeModel = localStorage.getItem('crypto_active_model') || '';
-  } catch(e){}
-
-  // 如果沒有設定任何 key，自動選第一個有 key 的模型
-  if(!state.activeModel){
-    if(state.keys.claude) state.activeModel = 'claude';
-    else if(state.keys.gemini) state.activeModel = 'gemini';
-    else if(state.keys.groq) state.activeModel = 'groq';
+  try{
+    S.keys.claude=localStorage.getItem(MODELS.claude.sk)||'';
+    S.keys.gemini=localStorage.getItem(MODELS.gemini.sk)||'';
+    S.keys.groq=localStorage.getItem(MODELS.groq.sk)||'';
+    S.model=localStorage.getItem('crypto_active_model')||'';
+    S.sym=localStorage.getItem('crypto_sym')||'BTCUSDT';
+    S.style=localStorage.getItem('crypto_style')||'candle';
+  }catch(e){}
+  if(!S.model){
+    if(S.keys.claude)S.model='claude';
+    else if(S.keys.gemini)S.model='gemini';
+    else if(S.keys.groq)S.model='groq';
   }
-
-  updateCurrentModelDisplay();
-
-  // 有設定過就直接進主介面
-  var hasVisited = false;
-  try { hasVisited = localStorage.getItem('crypto_visited') === '1'; } catch(e){}
-  if(hasVisited){
+  updateMenuSub();
+  var v=false;try{v=localStorage.getItem('crypto_visited')==='1';}catch(e){}
+  if(v){
     document.getElementById('apiSetup').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
-    buildSymbolTabs();
-    fetchAllData();
-    setInterval(fetchAllData, 30000);
+    startApp();
   }
 }
 
 function startDashboard(){
-  var custom = document.getElementById('customSymbol').value.trim().toUpperCase().replace(/\s/g,'');
-  if(custom){
-    if(!custom.endsWith('USDT')){alert('格式請用 XXXUSDT');return;}
-    if(state.symbols.indexOf(custom)<0) state.symbols.push(custom);
-  }
-  try { localStorage.setItem('crypto_visited','1'); } catch(e){}
+  try{localStorage.setItem('crypto_visited','1');}catch(e){}
   document.getElementById('apiSetup').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
-  buildSymbolTabs();
-  fetchAllData();
-  setInterval(fetchAllData, 30000);
+  startApp();
 }
 
-// ===== 模型顯示 =====
-function updateCurrentModelDisplay(){
-  var el = document.getElementById('currentModelDisplay');
-  var tag = document.getElementById('aiModelTag');
-  if(state.activeModel && MODELS[state.activeModel]){
-    el.textContent = MODELS[state.activeModel].name;
-    el.style.color = 'var(--accent)';
-    if(tag) tag.textContent = MODELS[state.activeModel].tag;
-  } else {
-    el.textContent = '未設定 — 點 ⋮ 設定';
-    el.style.color = 'var(--muted)';
-    if(tag) tag.textContent = '未設定';
-  }
+function startApp(){
+  initChart();
+  fetchKlines();
+  connectWS();
+  fetchAllSyms();
 }
 
-// ===== 選單 =====
-function toggleMenu(){document.getElementById('dropdown').classList.toggle('hidden');}
-function closeMenu(){document.getElementById('dropdown').classList.add('hidden');}
-document.addEventListener('click',function(e){
-  var btn=document.getElementById('menuBtn');
-  var dd=document.getElementById('dropdown');
-  if(!btn.contains(e.target)&&!dd.contains(e.target)) dd.classList.add('hidden');
-});
-
-// ===== Modal =====
-function openApiModal(){
-  closeMenu();
-  switchModelTab(state.currentModalTab);
-  updateAllStatuses();
-  document.getElementById('modalOverlay').classList.remove('hidden');
+// WebSocket
+function connectWS(){
+  if(S.ws){try{S.ws.close();}catch(e){}}
+  document.getElementById('liveBadge').style.opacity='0.4';
+  S.ws=new WebSocket('wss://stream.binance.com:9443/ws/'+S.sym.toLowerCase()+'@ticker');
+  S.ws.onopen=function(){document.getElementById('liveBadge').style.opacity='1';};
+  S.ws.onmessage=function(e){
+    try{
+      var d=JSON.parse(e.data);
+      var p=parseFloat(d.c),ch=parseFloat(d.P),up=ch>=0;
+      var pv=document.getElementById('priceValue');
+      pv.textContent=fmtP(p);pv.style.color=up?'var(--up)':'var(--down)';
+      var ce=document.getElementById('priceChange');
+      ce.textContent=(up?'+':'')+ch.toFixed(2)+'%';ce.className='price-change '+(up?'up':'down');
+      document.getElementById('priceCard').className='price-card '+(up?'':'down');
+      document.getElementById('symLabel').textContent=S.sym.replace('USDT','/USDT');
+      document.getElementById('symBtnName').textContent=S.sym.replace('USDT','/USDT');
+      document.getElementById('priceSub').textContent='24H 高: '+fmtP(parseFloat(d.h))+' | 低: '+fmtP(parseFloat(d.l));
+      document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('zh-TW');
+    }catch(err){}
+  };
+  S.ws.onclose=function(){document.getElementById('liveBadge').style.opacity='0.4';setTimeout(connectWS,3000);};
+  S.ws.onerror=function(){try{S.ws.close();}catch(e){}};
 }
 
-function closeApiModal(){
-  document.getElementById('modalOverlay').classList.add('hidden');
-  ['claude','gemini','groq'].forEach(function(m){
-    document.getElementById(m+'KeyInput').value='';
-  });
-}
-
-function handleOverlayClick(e){
-  if(e.target===document.getElementById('modalOverlay')) closeApiModal();
-}
-
-function switchModelTab(model){
-  state.currentModalTab = model;
-  ['claude','gemini','groq'].forEach(function(m){
-    document.getElementById('tab-'+m).classList.toggle('active', m===model);
-    document.getElementById('panel-'+m).classList.toggle('hidden', m!==model);
-  });
-}
-
-function updateAllStatuses(){
-  ['claude','gemini','groq'].forEach(function(m){
-    var key = state.keys[m];
-    var textEl = document.getElementById(m+'StatusText');
-    var badgeEl = document.getElementById(m+'StatusBadge');
-    var useBtn = document.getElementById(m+'UseBtn');
-    var revokeBtn = document.getElementById(m+'RevokeBtn');
-    if(key){
-      textEl.textContent = key.substring(0,10)+'••••••••';
-      textEl.className = 'api-status-value api-connected';
-      badgeEl.textContent = state.activeModel===m ? '使用中' : '已設定';
-      badgeEl.className = 'status-badge '+(state.activeModel===m?'badge-on':'badge-off');
-      useBtn.style.display = state.activeModel===m ? 'none' : 'block';
-      revokeBtn.style.display = 'block';
-    } else {
-      textEl.textContent = '未設定';
-      textEl.className = 'api-status-value api-disconnected';
-      badgeEl.textContent = '未連線';
-      badgeEl.className = 'status-badge badge-off';
-      useBtn.style.display = 'none';
-      revokeBtn.style.display = 'none';
-    }
-  });
-}
-
-function saveKey(model){
-  var input = document.getElementById(model+'KeyInput');
-  var key = input.value.trim();
-  if(!key){alert('請輸入 API Key');return;}
-  state.keys[model] = key;
-  try { localStorage.setItem(MODELS[model].storageKey, key); } catch(e){}
-  // 如果目前沒有啟用模型，自動啟用這個
-  if(!state.activeModel){
-    state.activeModel = model;
-    try { localStorage.setItem('crypto_active_model', model); } catch(e){}
-  }
-  input.value = '';
-  updateAllStatuses();
-  updateCurrentModelDisplay();
-  alert('✅ 已儲存！');
-}
-
-function setActiveModel(model){
-  if(!state.keys[model]){alert('請先儲存此模型的 API Key');return;}
-  state.activeModel = model;
-  try { localStorage.setItem('crypto_active_model', model); } catch(e){}
-  updateAllStatuses();
-  updateCurrentModelDisplay();
-  closeApiModal();
-  fetchAllData();
-}
-
-function revokeKey(model){
-  if(!confirm('確定要解除 '+MODELS[model].name+' 的綁定嗎？')) return;
-  state.keys[model] = '';
-  try { localStorage.removeItem(MODELS[model].storageKey); } catch(e){}
-  if(state.activeModel===model){
-    state.activeModel = '';
-    try { localStorage.removeItem('crypto_active_model'); } catch(e){}
-    // 自動切換到其他有 key 的模型
-    var others = ['claude','gemini','groq'];
-    for(var i=0;i<others.length;i++){
-      if(state.keys[others[i]]){ state.activeModel=others[i]; try{localStorage.setItem('crypto_active_model',others[i]);}catch(e){} break; }
-    }
-  }
-  updateAllStatuses();
-  updateCurrentModelDisplay();
-  alert('已解除綁定');
-}
-
-// ===== 幣種 & 時間框架 =====
-function buildSymbolTabs(){
-  var c=document.getElementById('symbolTabs'); c.innerHTML='';
-  state.symbols.forEach(function(sym,i){
-    var btn=document.createElement('button');
-    btn.className='tab'+(i===0?' active':'');
-    btn.textContent=sym.replace('USDT','/USDT');
-    btn.onclick=function(){
-      document.querySelectorAll('#symbolTabs .tab').forEach(function(b){b.classList.remove('active');});
-      btn.classList.add('active'); state.currentSymbol=sym; fetchAllData();
-    };
-    c.appendChild(btn);
-  });
-}
-
-function switchTF(el,tf){
-  document.querySelectorAll('.tf-tab').forEach(function(b){b.classList.remove('active');});
-  el.classList.add('active'); state.currentTF=tf; fetchAllData();
-}
-
-// ===== 數據抓取 =====
-function fetchWithTimeout(url,ms){
-  return new Promise(function(resolve,reject){
-    var t=setTimeout(function(){reject(new Error('請求逾時'));},ms);
-    fetch(url).then(function(r){clearTimeout(t);resolve(r);}).catch(function(e){clearTimeout(t);reject(e);});
-  });
-}
-
-function fetchJSON(url){
-  var last; var i=0;
+// K線
+var PROX=[function(u){return u;},function(u){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(u);},function(u){return 'https://corsproxy.io/?'+encodeURIComponent(u);}];
+function fJSON(url){
+  var last,i=0;
   function next(){
-    if(i>=BINANCE_PROXIES.length) return Promise.reject(last||new Error('連線失敗'));
-    var fn=BINANCE_PROXIES[i++];
-    return fetchWithTimeout(fn(url),8000).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).catch(function(e){last=e;return next();});
+    if(i>=PROX.length)return Promise.reject(last||new Error('連線失敗'));
+    var fn=PROX[i++];
+    return new Promise(function(res,rej){
+      var t=setTimeout(function(){rej(new Error('逾時'));},8000);
+      fetch(fn(url)).then(function(r){clearTimeout(t);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(res).catch(function(e){last=e;rej(e);});
+    }).catch(function(){return next();});
   }
   return next();
 }
 
-function fetchAllData(){
-  showError('');
-  var base='https://api.binance.com';
-  Promise.all([
-    fetchJSON(base+'/api/v3/ticker/24hr?symbol='+state.currentSymbol),
-    fetchJSON(base+'/api/v3/klines?symbol='+state.currentSymbol+'&interval='+state.currentTF+'&limit=100')
-  ]).then(function(r){
-    var ticker=r[0], klines=r[1];
-    updatePriceCard(ticker);
-    var ind=calcIndicators(klines);
-    updateIndicators(ind,ticker);
+function fetchKlines(){
+  showErr('');
+  fJSON('https://api.binance.com/api/v3/klines?symbol='+S.sym+'&interval='+S.tf+'&limit=200').then(function(klines){
+    S.kdata=klines;
     updateChart(klines);
-    updateLevels(klines,ticker);
-    document.getElementById('lastUpdate').textContent=new Date().toLocaleTimeString('zh-TW');
-    if(state.activeModel && state.keys[state.activeModel]){
-      runAIAnalysis(ticker,ind);
-    } else {
-      document.getElementById('aiContent').innerHTML='<div class="ai-loading" style="color:var(--muted)">未設定 AI 模型 — 點右上角 ⋮ 設定</div>';
-    }
-  }).catch(function(e){ showError('⚠ 數據載入失敗：'+e.message); });
+    var ind=calcInd(klines);
+    updateInd(ind);
+    updateLevels(klines);
+  }).catch(function(e){showErr('⚠ K線載入失敗：'+e.message);});
 }
 
-// ===== 價格 =====
-function updatePriceCard(t){
-  var price=parseFloat(t.lastPrice),change=parseFloat(t.priceChangePercent),isUp=change>=0;
-  document.getElementById('symbolLabel').textContent=state.currentSymbol.replace('USDT','/USDT');
-  document.getElementById('priceValue').textContent=fmtPrice(price);
-  var el=document.getElementById('priceChange');
-  el.textContent=(isUp?'+':'')+change.toFixed(2)+'%';
-  el.className='price-change '+(isUp?'up':'down');
-  document.getElementById('priceSub').textContent='24H 高: '+fmtPrice(parseFloat(t.highPrice))+' | 低: '+fmtPrice(parseFloat(t.lowPrice));
-  document.getElementById('priceCard').className='price-card '+(isUp?'':'down');
+function manualRefresh(){fetchKlines();if(S.model&&S.keys[S.model])runAIAnalysis();}
+
+function switchTF(el,tf){
+  document.querySelectorAll('.tf-tab').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');S.tf=tf;fetchKlines();
 }
 
-function fmtPrice(p){if(p>=10000)return '$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(p>=100)return '$'+p.toFixed(2);if(p>=1)return '$'+p.toFixed(3);return '$'+p.toFixed(5);}
-function fmtVol(v){if(v>=1e9)return (v/1e9).toFixed(1)+'B';if(v>=1e6)return (v/1e6).toFixed(1)+'M';if(v>=1e3)return (v/1e3).toFixed(1)+'K';return v.toFixed(0);}
+// Chart
+function initChart(){
+  var c=document.getElementById('chartContainer');c.innerHTML='';
+  S.chart=LightweightCharts.createChart(c,{
+    width:c.clientWidth,height:240,
+    layout:{background:{color:'transparent'},textColor:'#555570'},
+    grid:{vertLines:{color:'#1e1e2e'},horzLines:{color:'#1e1e2e'}},
+    crosshair:{mode:LightweightCharts.CrosshairMode.Normal},
+    rightPriceScale:{borderColor:'#1e1e2e'},
+    timeScale:{borderColor:'#1e1e2e',timeVisible:true,secondsVisible:false},
+    handleScroll:true,handleScale:true
+  });
+  S.cSeries=S.chart.addCandlestickSeries({upColor:'#00ff88',downColor:'#ff3366',borderUpColor:'#00ff88',borderDownColor:'#ff3366',wickUpColor:'#00ff88',wickDownColor:'#ff3366'});
+  S.lSeries=S.chart.addLineSeries({color:'#00ff88',lineWidth:2,visible:false});
+  S.aSeries=S.chart.addAreaSeries({topColor:'rgba(0,255,136,0.3)',bottomColor:'rgba(0,255,136,0)',lineColor:'#00ff88',lineWidth:2,visible:false});
+  applyStyle(S.style);
+  window.addEventListener('resize',function(){if(S.chart)S.chart.applyOptions({width:c.clientWidth});});
+}
 
-// ===== 指標 =====
-function calcIndicators(klines){
-  var closes=klines.map(function(k){return parseFloat(k[4]);});
-  var vols=klines.map(function(k){return parseFloat(k[5]);});
-  var r20=vols.slice(-20);
-  var avg=r20.reduce(function(a,b){return a+b;},0)/r20.length;
-  return{rsi:calcRSI(closes,14),macd:calcMACD(closes),ma20:calcMA(closes,20),avgVol:avg,lastVol:vols[vols.length-1]};
+function updateChart(klines){
+  var data=klines.map(function(k){return{time:Math.floor(k[0]/1000),open:parseFloat(k[1]),high:parseFloat(k[2]),low:parseFloat(k[3]),close:parseFloat(k[4]),value:parseFloat(k[4])};});
+  S.cSeries.setData(data);
+  S.lSeries.setData(data.map(function(d){return{time:d.time,value:d.close};}));
+  S.aSeries.setData(data.map(function(d){return{time:d.time,value:d.close};}));
+  S.chart.timeScale().fitContent();
+}
+
+function switchStyle(el,style){
+  document.querySelectorAll('.style-tab').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');S.style=style;
+  try{localStorage.setItem('crypto_style',style);}catch(e){}
+  applyStyle(style);
+}
+
+function applyStyle(style){
+  if(!S.cSeries)return;
+  S.cSeries.applyOptions({visible:style==='candle'});
+  S.lSeries.applyOptions({visible:style==='line'});
+  S.aSeries.applyOptions({visible:style==='area'});
+}
+
+// 指標
+function calcInd(klines){
+  var c=klines.map(function(k){return parseFloat(k[4]);});
+  var v=klines.map(function(k){return parseFloat(k[5]);});
+  var r20=v.slice(-20),avg=r20.reduce(function(a,b){return a+b;},0)/r20.length;
+  return{rsi:calcRSI(c,14),macd:calcMACD(c),ma20:calcMA(c,20),avgVol:avg,lastVol:v[v.length-1],last:c[c.length-1]};
 }
 function calcRSI(c,p){if(c.length<p+1)return 50;var g=0,l=0;for(var i=c.length-p;i<c.length;i++){var d=c[i]-c[i-1];if(d>0)g+=d;else l-=d;}return 100-100/(1+g/(l||0.0001));}
 function calcMACD(c){function ema(a,p){var k=2/(p+1),e=a[0];for(var i=1;i<a.length;i++)e=a[i]*k+e*(1-k);return e;}var v=ema(c,12)-ema(c,26);return{value:v,bullish:v>0};}
 function calcMA(c,p){if(c.length<p)return c[c.length-1];return c.slice(-p).reduce(function(a,b){return a+b;},0)/p;}
 
-function updateIndicators(ind,ticker){
-  var price=parseFloat(ticker.lastPrice),rsi=ind.rsi;
+function updateInd(ind){
+  var rsi=ind.rsi;
   document.getElementById('rsiValue').textContent=rsi.toFixed(1);
-  var fill=document.getElementById('rsiFill'); fill.style.width=rsi+'%';
-  if(rsi>70){fill.style.background='var(--down)';setSignal('rsiSignal','⚠ 超買區間','signal-overbought');}
-  else if(rsi<30){fill.style.background='var(--up)';setSignal('rsiSignal','✓ 超賣機會','signal-oversold');}
-  else if(rsi>50){fill.style.background='var(--accent3)';setSignal('rsiSignal','↑ 偏強','signal-buy');}
-  else{fill.style.background='var(--muted)';setSignal('rsiSignal','↓ 偏弱','signal-neutral');}
+  var f=document.getElementById('rsiFill');f.style.width=rsi+'%';
+  if(rsi>70){f.style.background='var(--down)';setSig('rsiSignal','⚠ 超買區間','soverbought');}
+  else if(rsi<30){f.style.background='var(--up)';setSig('rsiSignal','✓ 超賣機會','soversold');}
+  else if(rsi>50){f.style.background='var(--accent3)';setSig('rsiSignal','↑ 偏強','sbuy');}
+  else{f.style.background='var(--muted)';setSig('rsiSignal','↓ 偏弱','sneutral');}
   var mv=ind.macd.value;
   document.getElementById('macdValue').textContent=Math.abs(mv)>100?mv.toFixed(0):mv.toFixed(2);
-  setSignal('macdSignal',ind.macd.bullish?'↑ 多頭排列':'↓ 空頭排列',ind.macd.bullish?'signal-buy':'signal-sell');
-  document.getElementById('ma20Value').textContent=fmtPrice(ind.ma20).replace('$','');
-  setSignal('ma20Signal',price>ind.ma20?'↑ 均線上方':'↓ 均線下方',price>ind.ma20?'signal-buy':'signal-sell');
+  setSig('macdSignal',ind.macd.bullish?'↑ 多頭排列':'↓ 空頭排列',ind.macd.bullish?'sbuy':'ssell');
+  document.getElementById('ma20Value').textContent=fmtP(ind.ma20).replace('$','');
+  setSig('ma20Signal',ind.last>ind.ma20?'↑ 均線上方':'↓ 均線下方',ind.last>ind.ma20?'sbuy':'ssell');
   var vr=ind.lastVol/ind.avgVol;
-  document.getElementById('volValue').textContent=fmtVol(ind.lastVol);
-  setSignal('volSignal',vr>1.5?'🔥 放量':vr<0.5?'😴 縮量':'→ 正常',vr>1.5?'signal-buy':'signal-neutral');
+  document.getElementById('volValue').textContent=fmtV(ind.lastVol);
+  setSig('volSignal',vr>1.5?'🔥 放量':vr<0.5?'😴 縮量':'→ 正常',vr>1.5?'sbuy':'sneutral');
 }
-function setSignal(id,text,cls){var el=document.getElementById(id);el.textContent=text;el.className='indicator-signal '+cls;}
+function setSig(id,t,c){var el=document.getElementById(id);el.textContent=t;el.className='isignal '+c;}
 
-// ===== 圖表 =====
-function updateChart(klines){
-  var data=klines.slice(-40);
-  var labels=data.map(function(k){var d=new Date(k[0]);return('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);});
-  var prices=data.map(function(k){return parseFloat(k[4]);});
-  var isUp=prices[prices.length-1]>=prices[0]; var color=isUp?'#00ff88':'#ff3366';
-  if(state.chart){state.chart.destroy();state.chart=null;}
-  var ctx=document.getElementById('priceChart').getContext('2d');
-  var grad=ctx.createLinearGradient(0,0,0,180);
-  grad.addColorStop(0,isUp?'rgba(0,255,136,0.2)':'rgba(255,51,102,0.2)');grad.addColorStop(1,'transparent');
-  state.chart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{data:prices,borderColor:color,backgroundColor:grad,borderWidth:2,pointRadius:0,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555570',font:{family:'Space Mono',size:9},maxTicksLimit:6,maxRotation:0},grid:{color:'#1e1e2e'}},y:{ticks:{color:'#555570',font:{family:'Space Mono',size:9},maxTicksLimit:5},grid:{color:'#1e1e2e'}}}}});
-}
-
-// ===== 點位 =====
-function updateLevels(klines,ticker){
-  var price=parseFloat(ticker.lastPrice);
+function updateLevels(klines){
   var recent=klines.slice(-20);
   var highs=recent.map(function(k){return parseFloat(k[2]);});
   var lows=recent.map(function(k){return parseFloat(k[3]);});
   var maxH=Math.max.apply(null,highs),minL=Math.min.apply(null,lows),range=maxH-minL;
-  document.getElementById('r2').textContent=fmtPrice(maxH);
-  document.getElementById('r1').textContent=fmtPrice(price+range*0.382);
-  document.getElementById('longEntry').textContent=fmtPrice(minL+range*0.1);
-  document.getElementById('shortEntry').textContent=fmtPrice(maxH-range*0.1);
-  document.getElementById('s1').textContent=fmtPrice(price-range*0.236);
-  document.getElementById('s2').textContent=fmtPrice(minL);
+  var price=parseFloat(klines[klines.length-1][4]);
+  document.getElementById('r2').textContent=fmtP(maxH);
+  document.getElementById('r1').textContent=fmtP(price+range*0.382);
+  document.getElementById('longEntry').textContent=fmtP(minL+range*0.1);
+  document.getElementById('shortEntry').textContent=fmtP(maxH-range*0.1);
+  document.getElementById('s1').textContent=fmtP(price-range*0.236);
+  document.getElementById('s2').textContent=fmtP(minL);
 }
 
-// ===== AI 分析（多模型） =====
-function runAIAnalysis(ticker,ind){
-  var el=document.getElementById('aiContent');
-  var model=state.activeModel;
-  var key=state.keys[model];
-  el.innerHTML='<div class="ai-loading">'+MODELS[model].name+' 分析中<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div></div>';
+// 幣種搜尋
+function fetchAllSyms(){
+  fJSON('https://api.binance.com/api/v3/ticker/24hr').then(function(data){
+    S.allSyms=data.filter(function(s){return s.symbol.endsWith('USDT');}).sort(function(a,b){return parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume);});
+    S.filtSyms=S.allSyms;
+  }).catch(function(){});
+}
 
-  var price=parseFloat(ticker.lastPrice),change=parseFloat(ticker.priceChangePercent);
-  var prompt='你是專業加密貨幣技術分析師，請用繁體中文分析以下數據。\n\n幣種：'+state.currentSymbol+' | 時間：'+state.currentTF+'\n價格：'+fmtPrice(price)+' | 24H：'+change.toFixed(2)+'%\nRSI：'+ind.rsi.toFixed(1)+' | MACD：'+(ind.macd.bullish?'多頭':'空頭')+'\nMA20：'+fmtPrice(ind.ma20)+'（'+(price>ind.ma20?'上方':'下方')+'）\n量能：'+(ind.lastVol>ind.avgVol*1.5?'放量':ind.lastVol<ind.avgVol*0.5?'縮量':'正常')+'\n\n請提供：\n1. 📊 趨勢判斷（多/空/盤整）\n2. ⚡ 關鍵訊號（2-3點）\n3. 🎯 操作建議\n4. ⚠ 風險提示\n\n每項2-3句，簡潔直接。';
+function openSymbolModal(){
+  closeMenu();
+  renderSymList(S.allSyms);
+  document.getElementById('symOverlay').classList.remove('hidden');
+  setTimeout(function(){document.getElementById('symSearch').focus();},100);
+}
+function closeSymbolModal(){document.getElementById('symOverlay').classList.add('hidden');document.getElementById('symSearch').value='';S.filtSyms=S.allSyms;}
+function handleSymOverlay(e){if(e.target===document.getElementById('symOverlay'))closeSymbolModal();}
 
-  var p;
-  if(model==='claude'){
-    p = fetch(WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:MODELS.claude.tag,max_tokens:600,messages:[{role:'user',content:prompt}]})
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.error) throw new Error(d.error.message);
-      return d.content[0].text;
-    });
-  } else if(model==='gemini'){
-    p = fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODELS.gemini.tag+':generateContent?key='+key,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.error) throw new Error(d.error.message);
-      return d.candidates[0].content.parts[0].text;
-    });
-  } else if(model==='groq'){
-    p = fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
-      body:JSON.stringify({model:MODELS.groq.tag,max_tokens:600,messages:[{role:'user',content:prompt}]})
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.error) throw new Error(d.error.message);
-      return d.choices[0].message.content;
-    });
-  }
+function filterSymbols(){
+  var q=document.getElementById('symSearch').value.trim().toUpperCase();
+  S.filtSyms=q?S.allSyms.filter(function(s){return s.symbol.includes(q);}):S.allSyms;
+  renderSymList(S.filtSyms);
+}
 
-  p.then(function(text){
-    el.innerHTML='<div class="ai-content">'+text+'</div>';
-  }).catch(function(e){
-    el.innerHTML='<div class="ai-loading" style="color:var(--accent2)">⚠ AI 分析失敗：'+e.message+'</div>';
+function renderSymList(list){
+  var c=document.getElementById('symList');
+  if(!list||list.length===0){c.innerHTML='<div class="sym-loading">找不到相關幣種</div>';return;}
+  var html='',show=list.slice(0,80);
+  show.forEach(function(s){
+    var n=s.symbol.replace('USDT',''),p=fmtP(parseFloat(s.lastPrice));
+    var ch=parseFloat(s.priceChangePercent),up=ch>=0,act=s.symbol===S.sym;
+    html+='<div class="symbol-item'+(act?' active':'')+'" onclick="selectSym(\''+s.symbol+'\')">';
+    html+='<div><div class="sym-name">'+n+'/USDT</div><div class="sym-full">'+s.symbol+'</div></div>';
+    html+='<div style="text-align:right"><div class="sym-price" style="color:'+(up?'var(--up)':'var(--down)')+'">'+p+'</div>';
+    html+='<div class="sym-chg" style="color:'+(up?'var(--up)':'var(--down)')+'">'+(up?'+':'')+ch.toFixed(2)+'%</div></div></div>';
+  });
+  if(list.length>80)html+='<div class="sym-loading">顯示前 80 筆，請輸入關鍵字篩選</div>';
+  c.innerHTML=html;
+}
+
+function selectSym(sym){
+  S.sym=sym;try{localStorage.setItem('crypto_sym',sym);}catch(e){}
+  closeSymbolModal();
+  document.getElementById('symLabel').textContent=sym.replace('USDT','/USDT');
+  document.getElementById('symBtnName').textContent=sym.replace('USDT','/USDT');
+  connectWS();fetchKlines();
+  document.getElementById('aiContent').innerHTML='<div class="ai-loading" style="color:var(--muted)">幣種已切換，按「↻ 刷新分析」取得 AI 分析</div>';
+}
+
+// 選單
+function toggleMenu(){var btn=document.getElementById('menuBtn'),dd=document.getElementById('dropdown');btn.classList.toggle('open');dd.classList.toggle('hidden');}
+function closeMenu(){document.getElementById('menuBtn').classList.remove('open');document.getElementById('dropdown').classList.add('hidden');}
+document.addEventListener('click',function(e){var btn=document.getElementById('menuBtn'),dd=document.getElementById('dropdown');if(btn&&dd&&!btn.contains(e.target)&&!dd.contains(e.target)){btn.classList.remove('open');dd.classList.add('hidden');}});
+
+// AI Modal
+function openApiModal(){closeMenu();switchModelTab(S.mtab);updateStatuses();document.getElementById('apiOverlay').classList.remove('hidden');}
+function closeApiModal(){document.getElementById('apiOverlay').classList.add('hidden');['claude','gemini','groq'].forEach(function(m){document.getElementById(m+'KeyInput').value='';});}
+function handleApiOverlay(e){if(e.target===document.getElementById('apiOverlay'))closeApiModal();}
+function switchModelTab(m){S.mtab=m;['claude','gemini','groq'].forEach(function(n){document.getElementById('tab-'+n).classList.toggle('active',n===m);document.getElementById('panel-'+n).classList.toggle('hidden',n!==m);});}
+
+function updateStatuses(){
+  ['claude','gemini','groq'].forEach(function(m){
+    var k=S.keys[m],tx=document.getElementById(m+'StatusText'),bd=document.getElementById(m+'StatusBadge'),ub=document.getElementById(m+'UseBtn'),rb=document.getElementById(m+'RevokeBtn');
+    if(k){tx.textContent=k.substring(0,10)+'••••••••';tx.className='api-sv api-con';bd.textContent=S.model===m?'使用中':'已設定';bd.className='sbadge '+(S.model===m?'bon':'boff');ub.style.display=S.model===m?'none':'block';rb.style.display='block';}
+    else{tx.textContent='未設定';tx.className='api-sv api-dis';bd.textContent='未連線';bd.className='sbadge boff';ub.style.display='none';rb.style.display='none';}
   });
 }
 
-function showError(msg){var el=document.getElementById('errorMsg');if(msg){el.textContent=msg;el.classList.remove('hidden');}else{el.classList.add('hidden');}}
+function updateMenuSub(){
+  var s=document.getElementById('menuModelSub');if(s)s.textContent=S.model&&MODELS[S.model]?MODELS[S.model].name:'未設定';
+  var t=document.getElementById('aiTag');if(t)t.textContent=S.model&&MODELS[S.model]?MODELS[S.model].tag:'--';
+}
+
+function saveKey(m){
+  var i=document.getElementById(m+'KeyInput'),k=i.value.trim();
+  if(!k){alert('請輸入 API Key');return;}
+  S.keys[m]=k;try{localStorage.setItem(MODELS[m].sk,k);}catch(e){}
+  if(!S.model){S.model=m;try{localStorage.setItem('crypto_active_model',m);}catch(e){}}
+  i.value='';updateStatuses();updateMenuSub();alert('✅ 已儲存！');
+}
+
+function setActiveModel(m){
+  if(!S.keys[m]){alert('請先儲存此模型的 API Key');return;}
+  S.model=m;try{localStorage.setItem('crypto_active_model',m);}catch(e){}
+  updateStatuses();updateMenuSub();closeApiModal();
+}
+
+function revokeKey(m){
+  if(!confirm('確定要解除 '+MODELS[m].name+' 的綁定嗎？'))return;
+  S.keys[m]='';try{localStorage.removeItem(MODELS[m].sk);}catch(e){}
+  if(S.model===m){S.model='';try{localStorage.removeItem('crypto_active_model');}catch(e){}
+    var o=['claude','gemini','groq'];for(var i=0;i<o.length;i++){if(S.keys[o[i]]){S.model=o[i];try{localStorage.setItem('crypto_active_model',o[i]);}catch(e){}break;}}}
+  updateStatuses();updateMenuSub();alert('已解除綁定');
+}
+
+// AI
+function runAIAnalysis(){
+  var el=document.getElementById('aiContent');
+  if(!S.model||!S.keys[S.model]){el.innerHTML='<div class="ai-loading" style="color:var(--muted)">未設定 AI 模型 — 點 ☰ 設定</div>';return;}
+  if(!S.kdata||S.kdata.length===0){el.innerHTML='<div class="ai-loading" style="color:var(--muted)">請稍候，數據載入中...</div>';return;}
+  var m=S.model,k=S.keys[m];
+  el.innerHTML='<div class="ai-loading">'+MODELS[m].name+' 分析中<div class="ld"><span>.</span><span>.</span><span>.</span></div></div>';
+  var ind=calcInd(S.kdata),price=fmtP(ind.last),raw=parseFloat(S.kdata[S.kdata.length-1][4]),open=parseFloat(S.kdata[S.kdata.length-1][1]),chg=((raw-open)/open*100).toFixed(2);
+  var prompt='你是專業加密貨幣技術分析師，請用繁體中文分析以下數據。\n\n幣種：'+S.sym+' | 時間框架：'+S.tf+'\n價格：'+price+' | 近期漲跌：'+chg+'%\nRSI(14)：'+ind.rsi.toFixed(1)+' | MACD：'+(ind.macd.bullish?'多頭':'空頭')+'排列\nMA20：'+fmtP(ind.ma20)+'（價格在'+(raw>ind.ma20?'上方':'下方')+'）\n量能：'+(ind.lastVol>ind.avgVol*1.5?'放量':ind.lastVol<ind.avgVol*0.5?'縮量':'正常')+'\n\n請提供：\n1. 📊 趨勢判斷（多/空/盤整）\n2. ⚡ 關鍵訊號（2-3點）\n3. 🎯 操作建議（明確方向）\n4. ⚠ 風險提示\n\n每項2-3句，簡潔直接。';
+  var p;
+  if(m==='claude'){p=fetch(WORKER,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:MODELS.claude.tag,max_tokens:600,messages:[{role:'user',content:prompt}]})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error.message);return d.content[0].text;});}
+  else if(m==='gemini'){p=fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODELS.gemini.tag+':generateContent?key='+k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error.message);return d.candidates[0].content.parts[0].text;});}
+  else if(m==='groq'){p=fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model:MODELS.groq.tag,max_tokens:600,messages:[{role:'user',content:prompt}]})}).then(function(r){return r.json();}).then(function(d){if(d.error)throw new Error(d.error.message);return d.choices[0].message.content;});}
+  p.then(function(t){el.innerHTML='<div class="ai-content">'+t+'</div>';}).catch(function(e){el.innerHTML='<div class="ai-loading" style="color:var(--accent2)">⚠ AI 分析失敗：'+e.message+'</div>';});
+}
+
+function fmtP(p){if(p>=10000)return '$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});if(p>=100)return '$'+p.toFixed(2);if(p>=1)return '$'+p.toFixed(3);return '$'+p.toFixed(5);}
+function fmtV(v){if(v>=1e9)return (v/1e9).toFixed(1)+'B';if(v>=1e6)return (v/1e6).toFixed(1)+'M';if(v>=1e3)return (v/1e3).toFixed(1)+'K';return v.toFixed(0);}
+function showErr(m){var el=document.getElementById('errorMsg');if(m){el.textContent=m;el.classList.remove('hidden');}else{el.classList.add('hidden');}}
 
 init();
 </script>
-
 </body>
 </html>
